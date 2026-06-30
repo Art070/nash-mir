@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0808">
+<title>Наш мир</title>
+<style>
+:root{
+  --her:#e05c3a;
+  --him:#6fa3d0;
+  --bg:#0a0808;
+  --text:#f3ece6;
+  --dim:rgba(243,236,230,.55);
+  --dim2:rgba(243,236,230,.32);
+  --glass:rgba(17,15,19,.58);
+  --glass-strong:rgba(17,15,19,.74);
+  --border:rgba(255,255,255,.13);
+  --nav:74px;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100dvh;
+  overflow:hidden;
+  position:fixed;
+  width:100%;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+button,input,textarea,select{font-family:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+input,textarea{outline:none}
+::-webkit-scrollbar{width:0;height:0}
+
+/* ===== BACKGROUND LAYERS ===== */
+#bg{
+  position:fixed;inset:0;z-index:0;
+  background-image:url('eyes.png');
+  background-size:cover;
+  background-position:center;
+  /* fallback two-eyes gradient under the photo */
+  background-color:#0a0808;
+}
+#bg.noimg{
+  background-image:
+    radial-gradient(60% 70% at 24% 50%, rgba(224,92,58,.55), rgba(224,92,58,0) 60%),
+    radial-gradient(60% 70% at 76% 50%, rgba(111,163,208,.5), rgba(111,163,208,0) 60%),
+    linear-gradient(180deg,#161013,#0a0808);
+}
+/* light overlay: keep photo sharp & clearly visible, only slight darkening
+   at the very top (status bar) and bottom (nav) for text legibility */
+#bg-overlay{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:
+    linear-gradient(180deg, rgba(10,8,8,.42) 0%, rgba(10,8,8,.04) 16%, rgba(10,8,8,0) 45%, rgba(10,8,8,.06) 72%, rgba(10,8,8,.66) 100%);
+}
+
+/* ===== APP SHELL ===== */
+#app{position:relative;z-index:2;height:100dvh;display:flex;flex-direction:column}
+.scene{
+  flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(var(--safe-t) + 14px) 16px calc(var(--nav) + var(--safe-b) + 18px);
+  display:none;animation:fadeIn .42s ease both;
+}
+.scene.active{display:block}
+.scene.flexscene{display:none;flex-direction:column}
+.scene.flexscene.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.glass{
+  background:var(--glass);
+  -webkit-backdrop-filter:blur(28px) saturate(1.25);
+  backdrop-filter:blur(28px) saturate(1.25);
+  border:1px solid var(--border);
+  border-radius:24px;
+}
+.card{padding:20px;margin-bottom:14px}
+.card-title{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);margin-bottom:14px;font-weight:600}
+
+/* ===== HEADER / NESTS ===== */
+.hut-head{text-align:center;padding:14px 0 6px}
+.hut-title{font-size:38px;font-weight:300;letter-spacing:1px;line-height:1.05;
+  background:linear-gradient(100deg,var(--her),#f0c9a0 45%,var(--him));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.hut-sub{font-size:12.5px;color:var(--dim);margin-top:8px;letter-spacing:.5px}
+
+/* heart */
+.heart-wrap{display:flex;justify-content:center;margin:6px 0 18px}
+.heart{position:relative;width:54px;height:54px;animation:beat 1.8s ease-in-out infinite}
+.heart:before,.heart:after{content:"";position:absolute;top:0;width:27px;height:43px;
+  background:linear-gradient(160deg,var(--her),var(--him));border-radius:27px 27px 0 0;
+  box-shadow:0 0 30px rgba(224,92,58,.45)}
+.heart:before{left:27px;transform:rotate(-45deg);transform-origin:0 100%}
+.heart:after{left:0;transform:rotate(45deg);transform-origin:100% 100%}
+@keyframes beat{0%,100%{transform:scale(1)}14%{transform:scale(1.16)}28%{transform:scale(1)}42%{transform:scale(1.12)}70%{transform:scale(1)}}
+
+/* counter */
+.counter{display:flex;justify-content:center;gap:10px;margin-bottom:6px}
+.cunit{flex:1;text-align:center;padding:16px 6px}
+.cnum{font-size:30px;font-weight:300;line-height:1;background:linear-gradient(180deg,#fff,var(--dim));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.clabel{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim2);margin-top:7px}
+.date-btn{display:block;width:100%;margin-bottom:14px;padding:13px;text-align:center;font-size:13px;color:var(--dim);letter-spacing:.4px}
+.date-btn b{color:var(--text);font-weight:500}
+
+/* song widget */
+.song{display:flex;align-items:center;gap:14px}
+.song-ico{width:44px;height:44px;min-width:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;
+  background:linear-gradient(135deg,rgba(224,92,58,.3),rgba(111,163,208,.3));border:1px solid var(--border)}
+.song-info{flex:1;min-width:0}
+.song-name{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.song-name.empty{color:var(--dim2);font-weight:400}
+.song-link{font-size:11.5px;color:var(--him);margin-top:3px}
+.mini-btn{font-size:18px;color:var(--dim);padding:6px 8px}
+
+/* musli */
+.musli-list{display:flex;flex-direction:column;gap:10px}
+.musli-item{padding:13px 15px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);font-size:14px;line-height:1.5;word-break:break-word}
+.musli-item .vid{display:inline-flex;align-items:center;gap:6px;color:var(--him);font-size:13px;margin-top:8px;text-decoration:none}
+.musli-empty{display:flex;align-items:center;justify-content:center;min-height:34px;color:var(--dim2);font-size:13px}
+.add-row{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--dim);font-size:13.5px;padding:12px;margin-top:4px;border-radius:14px;border:1px dashed rgba(255,255,255,.14)}
+
+/* ===== RPS GAME ===== */
+.rps-score{display:flex;align-items:stretch;gap:10px;margin-bottom:16px}
+.rps-side{flex:1;text-align:center;padding:14px 8px;border-radius:18px;border:1px solid var(--border);background:rgba(255,255,255,.04)}
+.rps-side.her{box-shadow:inset 0 0 0 1px rgba(224,92,58,.35)}
+.rps-side.him{box-shadow:inset 0 0 0 1px rgba(111,163,208,.35)}
+.rps-name{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--dim)}
+.rps-name.her{color:var(--her)}.rps-name.him{color:var(--him)}
+.rps-pts{font-size:34px;font-weight:300;margin-top:4px}
+.rps-vs{display:flex;align-items:center;font-size:13px;color:var(--dim2)}
+.rps-target{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
+.rps-target button{padding:8px 18px;border-radius:30px;font-size:13px;color:var(--dim);border:1px solid var(--border);background:rgba(255,255,255,.04)}
+.rps-target button.on{color:#fff;background:linear-gradient(135deg,var(--her),var(--him));border-color:transparent}
+.rps-players{display:flex;gap:12px}
+.rps-pl{flex:1;border-radius:20px;border:1px solid var(--border);padding:16px 10px;text-align:center;background:rgba(255,255,255,.03);min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.rps-pl h4{font-size:12px;letter-spacing:1.5px;text-transform:uppercase}
+.rps-pl.her h4{color:var(--her)}.rps-pl.him h4{color:var(--him)}
+.rps-ready{padding:12px 22px;border-radius:30px;font-size:14px;font-weight:600;border:1px solid var(--border);background:rgba(255,255,255,.06)}
+.rps-ready.done{background:linear-gradient(135deg,rgba(224,92,58,.4),rgba(111,163,208,.4));border-color:transparent}
+.rps-choices{display:flex;flex-direction:column;gap:9px;width:100%}
+.rps-choices button{font-size:26px;padding:8px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.05);transition:transform .1s}
+.rps-choices button:active{transform:scale(.92)}
+.rps-hidden{font-size:40px;opacity:.5}
+.rps-pick-done{font-size:13px;color:var(--dim)}
+.rps-reveal{text-align:center;margin-top:18px;padding:18px;border-radius:20px;border:1px solid var(--border);background:rgba(255,255,255,.04)}
+.rps-reveal .hands{font-size:46px;display:flex;justify-content:center;gap:30px;margin-bottom:8px}
+.rps-result{font-size:18px;font-weight:500;margin:6px 0 14px}
+.rps-next{padding:13px 30px;border-radius:30px;font-weight:600;background:linear-gradient(135deg,var(--her),var(--him));color:#fff}
+.rps-stats{display:flex;gap:10px;margin-top:14px}
+.rps-stat{flex:1;text-align:center;padding:12px 6px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.rps-stat b{display:block;font-size:22px;font-weight:300}
+.rps-stat span{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim2)}
+.rps-hist{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.rps-hrow{display:flex;justify-content:space-between;font-size:12.5px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.03)}
+
+/* ===== CALENDAR SCENE (fullscreen grid) ===== */
+#cal-scene{padding:calc(var(--safe-t) + 12px) 10px calc(var(--nav) + var(--safe-b) + 8px)}
+.cal-head{text-align:center;position:relative;padding:2px 0 10px;flex-shrink:0}
+.cal-month{font-size:31px;font-weight:300;letter-spacing:.5px;text-transform:capitalize;
+  background:linear-gradient(100deg,var(--her),#f0c9a0 50%,var(--him));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.cal-year{font-size:11px;color:var(--dim);letter-spacing:5px;margin-top:0}
+.cal-summary{font-size:11px;color:var(--dim2);margin-top:6px;letter-spacing:.3px;min-height:13px}
+.cal-summary b{color:var(--her);font-weight:500}.cal-summary b.p{color:var(--him)}
+.cal-arrow{position:absolute;top:8px;width:42px;height:42px;border-radius:50%;font-size:20px;color:var(--text);
+  background:var(--glass);border:1px solid var(--border);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;transition:transform .15s;z-index:6}
+.cal-arrow:active{transform:scale(.9)}
+.cal-arrow.l{left:0}.cal-arrow.r{right:0}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px;flex-shrink:0}
+.cal-dow span{text-align:center;font-size:10.5px;color:var(--dim2);letter-spacing:.5px;padding:3px 0}
+.cal-dow span.we{color:rgba(224,92,58,.55)}
+/* grid stretches to fill all remaining vertical space — fullscreen */
+.cal-grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:1fr;gap:5px}
+.cal-grid.anim{animation:calIn .34s cubic-bezier(.22,1,.36,1)}
+@keyframes calIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.cal-cell{position:relative;min-height:0;display:flex;align-items:flex-start;justify-content:flex-start;
+  padding:7px 0 0 8px;border-radius:13px;overflow:hidden;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);transition:transform .12s}
+.cal-cell.out{background:transparent;border-color:transparent}
+.cal-cell:not(.out):active{transform:scale(.95)}
+.cal-cell .num{font-size:15px;color:var(--text);font-weight:400;position:relative;z-index:4;transition:.2s;line-height:1}
+.cal-cell.weekend .num{color:var(--dim)}
+.cal-cell.out .num{color:rgba(243,236,230,.16)}
+/* memory photo fills the whole cell as a big tile — absolute, no layout shift */
+.cal-cell.has-photo{border-color:transparent;background:transparent}
+.cal-cell .photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.cal-cell.has-photo:after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  border-radius:13px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.18);
+  background:linear-gradient(160deg,rgba(0,0,0,.45) 0%,rgba(0,0,0,0) 38%)}
+.cal-cell.has-photo .num{color:#fff;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.95);z-index:4}
+/* today: glowing red-amber frame (works with or without photo) */
+.cal-cell.today{border-color:transparent}
+.cal-cell.today:before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:13px;
+  box-shadow:inset 0 0 0 2px var(--her),0 0 18px rgba(224,92,58,.55)}
+.cal-cell.today:not(.has-photo){background:radial-gradient(120% 120% at 30% 20%,rgba(244,164,79,.32),rgba(224,92,58,.16))}
+.cal-cell.today .num{color:#fff;font-weight:700}
+/* plan marker */
+.cal-cell .plan-dot{position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--him);z-index:5;box-shadow:0 0 8px var(--him),0 1px 3px rgba(0,0,0,.6)}
+/* small caption for photo days (text/plan hint) */
+.cal-cell .pcap{position:absolute;left:0;right:0;bottom:0;padding:14px 7px 5px;z-index:4;
+  font-size:9.5px;line-height:1.2;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:linear-gradient(0deg,rgba(0,0,0,.78),transparent);text-shadow:0 1px 2px rgba(0,0,0,.8)}
+
+/* ===== THOUGHTS SCENE ===== */
+.draw-wrap{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--border);background:rgba(10,8,8,.4)}
+#draw{display:block;width:100%;touch-action:none}
+.draw-tools{display:flex;align-items:center;gap:12px;margin-top:12px}
+.pen{width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,.2)}
+.pen.on{border-color:#fff;transform:scale(1.12)}
+.pen.warm{background:var(--her)}.pen.cold{background:var(--him)}.pen.light{background:#f3ece6}
+.clear-btn{margin-left:auto;font-size:13px;color:var(--dim);padding:8px 16px;border-radius:30px;border:1px solid var(--border);background:rgba(255,255,255,.04)}
+.tarea{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:16px;padding:14px;font-size:15px;line-height:1.55;resize:none;color:var(--text)}
+.tarea::placeholder{color:var(--dim2)}
+.stat-grid{display:flex;gap:10px}
+.stat-cell{flex:1;text-align:center;padding:16px 6px}
+.stat-cell b{display:block;font-size:26px;font-weight:300}
+.stat-cell span{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim2);margin-top:4px;display:block}
+
+/* ===== MOMENTS ===== */
+.moment{padding:0;overflow:hidden;margin-bottom:14px}
+.moment img.cover{width:100%;height:200px;object-fit:cover;display:block}
+.moment-body{padding:16px 18px}
+.moment-tag{font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:4px 10px;border-radius:20px;display:inline-block;margin-bottom:8px}
+.tag-mem{background:rgba(224,92,58,.18);color:var(--her)}
+.tag-plan{background:rgba(111,163,208,.18);color:var(--him)}
+.tag-letter{background:linear-gradient(135deg,rgba(224,92,58,.18),rgba(111,163,208,.18));color:#f0c9a0}
+.moment-date{font-size:11.5px;color:var(--dim);margin-bottom:6px}
+.moment-text{font-size:14.5px;line-height:1.55;word-break:break-word}
+.moment-files{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.moment-files img{width:54px;height:54px;border-radius:10px;object-fit:cover}
+.moment-files .file{font-size:11px;color:var(--dim);padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.05)}
+.letter-locked{display:flex;align-items:center;gap:10px;color:var(--dim);font-size:13.5px}
+.letter-locked .lock{font-size:22px}
+
+/* ===== DREAMS ===== */
+.dream{display:flex;align-items:center;gap:12px;padding:15px 16px;margin-bottom:10px}
+.dream .chk{width:24px;height:24px;min-width:24px;border-radius:8px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px}
+.dream.done .chk{background:linear-gradient(135deg,var(--her),var(--him));border-color:transparent}
+.dream.done .dtext{text-decoration:line-through;color:var(--dim2)}
+.dream .dtext{flex:1;font-size:15px;word-break:break-word}
+.dream .del{color:var(--dim2);font-size:18px;padding:4px 6px}
+.idea-box{text-align:center;padding:20px}
+.idea-box .idea{font-size:16px;line-height:1.5;margin-bottom:14px;min-height:24px}
+.idea-box .idea.empty{color:var(--dim2);font-size:14px}
+
+/* ===== CHAT ===== */
+#chat-scene{padding:0}
+.chat-top{padding:calc(var(--safe-t) + 14px) 16px 10px;text-align:center}
+.chat-top h2{font-size:22px;font-weight:300}
+.chat-msgs{flex:1;min-height:0;overflow-y:auto;padding:8px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.bubble{max-width:78%;padding:10px 14px;border-radius:18px;font-size:14.5px;line-height:1.45;word-break:break-word;position:relative}
+.bubble .t{font-size:9.5px;opacity:.55;margin-top:4px;text-align:right}
+.bubble.her{align-self:flex-end;background:linear-gradient(135deg,var(--her),#c44a2c);color:#fff;border-bottom-right-radius:6px}
+.bubble.him{align-self:flex-start;background:linear-gradient(135deg,var(--him),#4f86b8);color:#fff;border-bottom-left-radius:6px}
+.chat-empty{text-align:center;color:var(--dim2);font-size:13px;margin:auto}
+.chat-bar{padding:10px 12px calc(var(--safe-b) + 10px);border-top:1px solid var(--border);background:var(--glass-strong);-webkit-backdrop-filter:blur(28px);backdrop-filter:blur(28px)}
+.chat-send-toggle{display:flex;gap:6px;margin-bottom:8px}
+.chat-send-toggle button{flex:1;padding:7px;border-radius:20px;font-size:12px;letter-spacing:1px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--dim)}
+.chat-send-toggle button.her.on{background:rgba(224,92,58,.25);color:var(--her);border-color:var(--her)}
+.chat-send-toggle button.him.on{background:rgba(111,163,208,.25);color:var(--him);border-color:var(--him)}
+.chat-input-row{display:flex;gap:8px;align-items:flex-end}
+.chat-input-row textarea{flex:1;max-height:96px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:20px;padding:11px 15px;font-size:15px;resize:none;color:var(--text);line-height:1.4}
+.chat-send{width:44px;height:44px;min-width:44px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--her),var(--him));color:#fff}
+
+/* ===== GAMES HUB ===== */
+.launch-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:18px 20px;margin-bottom:14px}
+.launch-card .lic{width:46px;height:46px;min-width:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;background:linear-gradient(135deg,rgba(224,92,58,.3),rgba(111,163,208,.3));border:1px solid var(--border)}
+.launch-card .lt{flex:1}
+.launch-card .lt b{font-weight:500;font-size:16px}
+.launch-card .lt span{display:block;font-size:12px;color:var(--dim);margin-top:3px}
+.launch-card .arr{color:var(--dim);font-size:20px}
+
+.games-head{display:flex;align-items:center;gap:10px;padding:6px 0 16px}
+.games-head .back{width:42px;height:42px;border-radius:50%;font-size:20px;background:var(--glass);border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+.games-head h2{font-size:24px;font-weight:300}
+.games-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.game-tile{padding:20px 14px;border-radius:22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:130px;justify-content:center}
+.game-tile .gem{font-size:34px}
+.game-tile b{font-weight:500;font-size:15px}
+.game-tile span{font-size:11px;color:var(--dim);line-height:1.3}
+.game-panel{animation:fadeIn .35s ease both}
+.gp-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.gp-head .back{width:38px;height:38px;border-radius:50%;font-size:18px;background:var(--glass);border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+.gp-head h3{font-size:19px;font-weight:400}
+.turn-banner{text-align:center;font-size:14px;padding:11px;border-radius:14px;margin-bottom:14px;border:1px solid var(--border);background:rgba(255,255,255,.04)}
+.turn-banner b.her{color:var(--her)}.turn-banner b.him{color:var(--him)}
+.g-btn{width:100%;padding:14px;border-radius:14px;font-weight:600;font-size:15px;background:linear-gradient(135deg,var(--her),var(--him));color:#fff;margin-top:12px}
+.g-btn.ghost{background:rgba(255,255,255,.06);border:1px solid var(--border)}
+.g-seg{display:flex;gap:8px;justify-content:center;margin-bottom:14px}
+.g-seg button{padding:8px 16px;border-radius:24px;font-size:13px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--dim)}
+.g-seg button.on{color:#fff;background:linear-gradient(135deg,var(--her),var(--him));border-color:transparent}
+
+/* tic-tac-toe */
+.ttt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:280px;margin:0 auto}
+.ttt-cell{aspect-ratio:1;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:300}
+.ttt-cell.x{color:var(--her)}.ttt-cell.o{color:var(--him)}
+.ttt-cell.win{background:rgba(255,255,255,.14)}
+
+/* hangman */
+.hang-fig{text-align:center;font-size:60px;margin:6px 0}
+.hang-word{text-align:center;font-size:30px;letter-spacing:8px;font-weight:300;margin:12px 0;min-height:40px;word-break:break-word}
+.hang-keys{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin-top:14px}
+.hang-keys button{aspect-ratio:1;border-radius:9px;font-size:14px;background:rgba(255,255,255,.06);border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+.hang-keys button:disabled{opacity:.28}
+.hang-keys button.good{background:rgba(111,163,208,.35);border-color:var(--him)}
+.hang-keys button.bad{background:rgba(224,92,58,.3);border-color:var(--her)}
+.hang-lives{text-align:center;font-size:20px;letter-spacing:3px;margin-top:6px}
+
+/* battleship */
+.bs-grid{display:grid;grid-template-columns:repeat(var(--n,7),1fr);gap:3px;max-width:330px;margin:0 auto;touch-action:manipulation}
+.bs-cell{aspect-ratio:1;border-radius:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:15px}
+.bs-cell.ship{background:rgba(111,163,208,.4);border-color:var(--him)}
+.bs-cell.hit{background:rgba(224,92,58,.55);border-color:var(--her)}
+.bs-cell.miss{background:rgba(255,255,255,.03)}
+.bs-cell.miss:after{content:"•";color:var(--dim2)}
+.bs-legend{text-align:center;font-size:12px;color:var(--dim);margin-top:10px}
+.pass-screen{text-align:center;padding:40px 20px}
+.pass-screen .pem{font-size:54px;margin-bottom:14px}
+.pass-screen p{color:var(--dim);font-size:14px;margin-bottom:8px;line-height:1.5}
+
+/* truth or dare */
+.td-card{min-height:200px;border-radius:24px;padding:28px 22px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:1px solid var(--border);background:rgba(255,255,255,.05)}
+.td-card .tdtag{font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;padding:5px 14px;border-radius:20px}
+.td-card.truth .tdtag{background:rgba(111,163,208,.25);color:var(--him)}
+.td-card.dare .tdtag{background:rgba(224,92,58,.25);color:var(--her)}
+.td-card .tdtext{font-size:19px;line-height:1.45;font-weight:300}
+.td-card .tdempty{color:var(--dim2);font-size:15px}
+
+/* buckshot roulette */
+.bsr-hp{display:flex;justify-content:space-between;gap:10px;margin-bottom:14px}
+.bsr-hp .side{flex:1;text-align:center;padding:12px;border-radius:16px;border:1px solid var(--border);background:rgba(255,255,255,.04)}
+.bsr-hp .side.act{box-shadow:0 0 0 2px var(--text) inset}
+.bsr-hp .side.her .nm{color:var(--her)}.bsr-hp .side.him .nm{color:var(--him)}
+.bsr-hp .nm{font-size:11px;letter-spacing:1.5px;text-transform:uppercase}
+.bsr-hearts{font-size:18px;margin-top:5px;letter-spacing:1px}
+.bsr-gun{text-align:center;font-size:46px;margin:8px 0}
+.bsr-shells{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;margin-bottom:10px;min-height:16px}
+.bsr-shell{width:11px;height:18px;border-radius:3px;background:rgba(255,255,255,.18)}
+.bsr-info{text-align:center;font-size:13.5px;color:var(--dim);min-height:20px;margin-bottom:12px;line-height:1.4}
+.bsr-actions{display:flex;gap:10px}
+.bsr-actions button{flex:1;padding:14px 8px;border-radius:14px;font-weight:600;font-size:14px;border:1px solid var(--border)}
+.bsr-shoot-self{background:rgba(255,255,255,.06)}
+.bsr-shoot-opp{background:linear-gradient(135deg,var(--her),#a83a20);color:#fff}
+.bsr-items{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+.bsr-item{width:46px;height:46px;border-radius:12px;font-size:22px;background:rgba(255,255,255,.06);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative}
+.bsr-item.her{box-shadow:inset 0 0 0 1px rgba(224,92,58,.4)}
+.bsr-item.him{box-shadow:inset 0 0 0 1px rgba(111,163,208,.4)}
+.bsr-item:disabled{opacity:.25}
+.bsr-label{text-align:center;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--dim2);margin:14px 0 6px}
+
+/* sync */
+.sync-btn{position:absolute;top:calc(var(--safe-t) + 14px);right:16px;width:40px;height:40px;border-radius:50%;background:var(--glass);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:17px;z-index:5}
+.sync-dot{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;border:2px solid var(--bg)}
+.sync-dot.on{background:#5fd17a}.sync-dot.off{background:var(--dim2)}
+.sync-step{display:flex;gap:10px;margin-bottom:12px;font-size:13.5px;line-height:1.5}
+.sync-step .n{width:22px;height:22px;min-width:22px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--dim)}
+.sync-step a{color:var(--him)}
+.room-code{font-size:30px;letter-spacing:8px;text-align:center;font-weight:300;padding:14px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid var(--border);margin:8px 0}
+
+/* ===== LOBBY / IDENTITY ===== */
+#lobby{position:fixed;inset:0;z-index:80;display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:calc(var(--safe-t) + 20px) 28px calc(var(--safe-b) + 28px);
+  background:rgba(8,6,7,.62);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);animation:fadeIn .4s ease both}
+#lobby.show{display:flex}
+.lobby-heart{font-size:50px;margin-bottom:10px;animation:beat 1.8s ease-in-out infinite}
+.lobby-title{font-size:34px;font-weight:300;letter-spacing:1px;
+  background:linear-gradient(100deg,var(--her),#f0c9a0 50%,var(--him));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.lobby-q{font-size:15px;color:var(--text);margin:14px 0 22px;text-align:center}
+.lobby-choices{display:flex;gap:14px;width:100%;max-width:360px}
+.lobby-pick{flex:1;padding:28px 12px;border-radius:24px;display:flex;flex-direction:column;align-items:center;gap:10px;
+  background:var(--glass);-webkit-backdrop-filter:blur(28px);backdrop-filter:blur(28px);border:1px solid var(--border);transition:transform .15s}
+.lobby-pick:active{transform:scale(.95)}
+.lobby-pick .lp-em{font-size:40px}
+.lobby-pick b{font-size:19px;font-weight:500}
+.lobby-pick span{font-size:11px;color:var(--dim);letter-spacing:1px}
+.lobby-pick.her{box-shadow:inset 0 0 0 1.5px rgba(224,92,58,.5)}
+.lobby-pick.him{box-shadow:inset 0 0 0 1.5px rgba(111,163,208,.5)}
+.lobby-note{font-size:12px;color:var(--dim);text-align:center;margin-top:22px;line-height:1.6;max-width:300px}
+.prof-btn{position:absolute;top:calc(var(--safe-t) + 14px);left:16px;width:40px;height:40px;border-radius:50%;
+  background:var(--glass);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;z-index:5}
+.prof-btn.her{box-shadow:inset 0 0 0 1.5px rgba(224,92,58,.6)}
+.prof-btn.him{box-shadow:inset 0 0 0 1.5px rgba(111,163,208,.6)}
+
+/* ===== COUPLE QUESTION ===== */
+.q-progress{text-align:center;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
+.q-card{padding:26px 22px;border-radius:24px;margin-bottom:16px;text-align:center}
+.q-num{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
+.q-text{font-size:22px;line-height:1.4;font-weight:300}
+.q-turn{text-align:center;font-size:13px;color:var(--dim);margin-bottom:12px}
+.q-turn b.her{color:var(--her)}.q-turn b.him{color:var(--him)}
+.q-section{padding:18px;border-radius:20px;margin-bottom:14px}
+.q-section.her{box-shadow:inset 0 0 0 1.5px rgba(224,92,58,.35)}
+.q-section.him{box-shadow:inset 0 0 0 1.5px rgba(111,163,208,.35)}
+.q-section-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;text-align:center}
+.q-section.her .q-section-label{color:var(--her)}.q-section.him .q-section-label{color:var(--him)}
+.q-opts{display:flex;flex-direction:column;gap:9px}
+.q-opt{padding:14px 16px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.05);font-size:15px;text-align:left;transition:transform .1s}
+.q-opt:active{transform:scale(.98)}
+.q-opt.sel.her{background:linear-gradient(135deg,rgba(224,92,58,.4),rgba(224,92,58,.18));border-color:var(--her)}
+.q-opt.sel.him{background:linear-gradient(135deg,rgba(111,163,208,.4),rgba(111,163,208,.18));border-color:var(--him)}
+.q-ta{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:14px;padding:13px 15px;font-size:15px;line-height:1.5;resize:none;color:var(--text);min-height:84px}
+.q-pass{text-align:center;padding:26px 16px}
+.q-pass .pem{font-size:46px;margin-bottom:12px}
+.q-pass p{color:var(--dim);font-size:14px;line-height:1.55;margin-bottom:6px}
+.q-pass b.her{color:var(--her)}.q-pass b.him{color:var(--him)}
+.q-answer{padding:16px 18px;border-radius:18px;margin-bottom:12px;border:1px solid var(--border);animation:fadeIn .4s ease both}
+.q-answer.her{background:rgba(224,92,58,.13);border-color:rgba(224,92,58,.3)}
+.q-answer.him{background:rgba(111,163,208,.13);border-color:rgba(111,163,208,.3)}
+.q-answer .who{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:7px;font-weight:500}
+.q-answer.her .who{color:var(--her)}.q-answer.him .who{color:var(--him)}
+.q-answer .ans{font-size:16px;line-height:1.45;word-break:break-word}
+.q-match{text-align:center;font-size:15px;margin:4px 0 14px;color:#f0c9a0;font-weight:500}
+
+/* ===== BOTTOM NAV ===== */
+#nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;
+  padding:8px 6px calc(var(--safe-b) + 6px);
+  background:var(--glass-strong);-webkit-backdrop-filter:blur(30px) saturate(1.3);backdrop-filter:blur(30px) saturate(1.3);
+  border-top:1px solid var(--border)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;color:var(--dim2);transition:color .2s}
+.nav-item .ic{font-size:20px;line-height:1}
+.nav-item .lb{font-size:9.5px;letter-spacing:.2px}
+.nav-item.on{color:var(--text)}
+.nav-item.on .ic{filter:drop-shadow(0 0 8px rgba(224,92,58,.6))}
+
+/* ===== BOTTOM SHEET ===== */
+#sheet-back{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .3s}
+#sheet-back.open{opacity:1;pointer-events:auto}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:51;
+  background:var(--glass-strong);-webkit-backdrop-filter:blur(34px) saturate(1.3);backdrop-filter:blur(34px) saturate(1.3);
+  border-top:1px solid var(--border);border-radius:28px 28px 0 0;
+  padding:10px 20px calc(var(--safe-b) + 24px);
+  transform:translateY(110%);transition:transform .4s cubic-bezier(.22,1,.36,1);
+  max-height:88dvh;overflow-y:auto}
+#sheet.open{transform:translateY(0)}
+.sheet-grip{width:40px;height:4px;border-radius:3px;background:rgba(255,255,255,.22);margin:6px auto 16px}
+.sheet-title{font-size:19px;font-weight:400;margin-bottom:16px;text-align:center}
+.field-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin:14px 0 7px}
+.sheet input[type=text],.sheet input[type=date],.sheet textarea, .sheet-in{
+  width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:14px;padding:14px 16px;font-size:15px;color:var(--text);resize:none;
+  transition:border-color .2s,background .2s,box-shadow .2s}
+.sheet input[type=text]:focus,.sheet input[type=date]:focus,.sheet textarea:focus,.sheet-in:focus{
+  border-color:rgba(224,92,58,.55);background:rgba(255,255,255,.1);box-shadow:0 0 0 3px rgba(224,92,58,.13)}
+.sheet textarea{min-height:96px;line-height:1.55}
+.btn{width:100%;padding:15px;border-radius:16px;font-size:15px;font-weight:600;margin-top:18px;
+  background:linear-gradient(135deg,var(--her),var(--him));color:#fff}
+.btn.ghost{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);font-weight:500}
+.btn.warm{background:linear-gradient(135deg,var(--her),#c44a2c)}
+.btn.cold{background:linear-gradient(135deg,var(--him),#4f86b8)}
+.sheet-choice{display:flex;gap:12px;margin-top:6px}
+.sheet-choice button{flex:1;padding:24px 10px;border-radius:18px;border:1px solid var(--border);background:rgba(255,255,255,.05);font-size:15px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.sheet-choice .em{font-size:28px}
+.file-pick{display:flex;align-items:center;justify-content:center;gap:9px;padding:15px;border-radius:16px;
+  border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);font-size:14.5px;font-weight:500;margin-top:8px;
+  transition:transform .12s,background .2s,border-color .2s}
+.file-pick:active{transform:scale(.985);background:rgba(255,255,255,.09)}
+.file-pick .fp-ic{font-size:18px}
+/* big photo dropzone */
+.photo-drop{position:relative;width:100%;height:210px;border-radius:18px;overflow:hidden;margin-top:8px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;
+  border:1.5px dashed rgba(255,255,255,.22);background:rgba(255,255,255,.04);color:var(--dim);font-size:14px;
+  transition:border-color .2s,background .2s,transform .12s}
+.photo-drop:active{transform:scale(.99);background:rgba(255,255,255,.07)}
+.photo-drop.has{border:none}
+.photo-drop .pd-ic{font-size:36px;opacity:.85}
+.photo-drop .pd-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.photo-drop .pd-placeholder{display:flex;flex-direction:column;align-items:center;gap:9px;position:relative;z-index:1}
+.photo-drop .pd-edit{position:absolute;bottom:10px;right:10px;z-index:2;display:flex;gap:6px;align-items:center;
+  background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:7px 13px;border-radius:20px;font-size:12.5px;color:#fff}
+.thumb-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.thumb{position:relative;width:64px;height:64px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--dim);text-align:center;padding:4px}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb .rm{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center}
+.main-photo-prev{width:100%;height:200px;border-radius:16px;object-fit:cover;margin-top:8px}
+input[type=file]{display:none}
+.empty-hint{text-align:center;color:var(--dim2);font-size:13.5px;padding:30px 10px;line-height:1.6}
+
+/* ===== DAY SHEET (choice + actions) ===== */
+.day-sub{text-align:center;font-size:12.5px;color:var(--dim);text-transform:capitalize;margin:-9px 0 16px}
+.day-actions{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.day-act{display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:14px 15px;border-radius:18px;
+  border:1px solid var(--border);background:rgba(255,255,255,.05);transition:transform .12s,background .2s}
+.day-act:active{transform:scale(.98);background:rgba(255,255,255,.08)}
+.day-act .da-ic{width:44px;height:44px;min-width:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.day-act.mem .da-ic{background:rgba(224,92,58,.18)}
+.day-act.plan .da-ic{background:rgba(111,163,208,.18)}
+.day-act .da-t{flex:1;min-width:0}
+.day-act .da-t b{font-weight:500;font-size:15.5px;display:block}
+.day-act .da-t span{font-size:12px;color:var(--dim)}
+.day-act .da-status{font-size:12px;font-weight:600;white-space:nowrap}
+.day-act.mem .da-status{color:var(--her)}.day-act.plan .da-status{color:var(--him)}
+.day-act .da-arrow{color:var(--dim2);font-size:22px;font-weight:300}
+
+/* ===== DAY SUMMARY (итоги дня) ===== */
+.ds-date{text-align:center;font-size:24px;font-weight:300}
+.ds-wd{text-align:center;font-size:12px;color:var(--dim);text-transform:capitalize;margin-top:3px}
+.ds-meta{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:15px 0 2px}
+.ds-chip{font-size:11.5px;padding:6px 12px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid var(--border);color:var(--dim)}
+.ds-chip.mem{color:var(--her);background:rgba(224,92,58,.13);border-color:rgba(224,92,58,.28)}
+.ds-chip.plan{color:var(--him);background:rgba(111,163,208,.13);border-color:rgba(111,163,208,.28)}
+.ds-hero{width:100%;border-radius:20px;margin-top:16px;display:block;object-fit:cover;max-height:320px;box-shadow:0 10px 28px rgba(0,0,0,.5)}
+.ds-section{margin-top:18px}
+.ds-section-title{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.ds-text{font-size:15.5px;line-height:1.6;color:var(--text);background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:16px;padding:14px 16px;word-break:break-word;white-space:pre-wrap}
+.ds-plan{font-size:15px;line-height:1.55;color:var(--text);background:rgba(111,163,208,.1);border:1px solid rgba(111,163,208,.25);border-radius:16px;padding:14px 16px;white-space:pre-wrap;word-break:break-word}
+.ds-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ds-gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px}
+.ds-files{display:flex;flex-direction:column;gap:7px}
+.ds-file{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--dim);padding:11px 13px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--border);word-break:break-word}
+.ds-actions{display:flex;gap:10px;margin-top:20px}
+.ds-actions .btn{margin-top:0}
+
+/* author chip — кто оставил запись */
+.author-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;letter-spacing:.2px;
+  padding:4px 10px;border-radius:20px;text-transform:none;white-space:nowrap}
+.author-chip.her{color:var(--her);background:rgba(224,92,58,.15);border:1px solid rgba(224,92,58,.3)}
+.author-chip.him{color:var(--him);background:rgba(111,163,208,.15);border:1px solid rgba(111,163,208,.3)}
+.moment-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.moment-top .moment-tag{margin-bottom:0}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="bg-overlay"></div>
+
+<div id="app">
+
+  <!-- ШАЛАШ -->
+  <section class="scene active" id="hut-scene">
+    <button class="prof-btn" id="prof-btn">🙂</button>
+    <button class="sync-btn" id="sync-btn">☁️<span class="sync-dot off" id="sync-dot"></span></button>
+    <div class="hut-head">
+      <div class="hut-title" id="hut-title">Шалаш</div>
+      <div class="hut-sub" id="hut-sub">Ваш маленький мир</div>
+    </div>
+    <div class="heart-wrap"><div class="heart"></div></div>
+    <button class="glass date-btn" id="date-btn">Когда всё началось? <b>Выбрать дату</b></button>
+    <div class="glass card counter" id="counter" style="display:none">
+      <div class="cunit"><div class="cnum" id="c-y">0</div><div class="clabel">лет</div></div>
+      <div class="cunit"><div class="cnum" id="c-m">0</div><div class="clabel">месяцев</div></div>
+      <div class="cunit"><div class="cnum" id="c-d">0</div><div class="clabel">дней</div></div>
+    </div>
+
+    <div class="glass card" id="song-card">
+      <div class="card-title">Песня дня</div>
+      <div class="song">
+        <div class="song-ico">♫</div>
+        <div class="song-info">
+          <div class="song-name empty" id="song-name">Ещё не выбрана</div>
+          <a class="song-link" id="song-link" target="_blank" rel="noopener" style="display:none">Открыть в Яндекс Музыке →</a>
+        </div>
+        <button class="mini-btn" id="song-edit">✎</button>
+      </div>
+    </div>
+
+    <div class="glass card" id="musli-card">
+      <div class="card-title">Головные мюсли</div>
+      <div class="musli-list" id="musli-list"></div>
+      <button class="add-row" id="musli-add">＋ Добавить мысль, стих или видео</button>
+    </div>
+
+    <button class="glass card launch-card" id="q-launch">
+      <span class="lic">💞</span>
+      <span class="lt"><b>Вопрос друг другу</b><span>Узнавайте друг друга — каждый отвечает по-своему</span></span>
+      <span class="arr">›</span>
+    </button>
+
+    <button class="glass card launch-card" id="games-launch">
+      <span class="lic">🎲</span>
+      <span class="lt"><b>Игры вдвоём</b><span>Камень-ножницы-бумага, Морской бой, Виселица и не только</span></span>
+      <span class="arr">›</span>
+    </button>
+  </section>
+
+  <!-- ВОПРОС ДРУГ ДРУГУ -->
+  <section class="scene" id="q-scene">
+    <div class="games-head">
+      <button class="back" id="q-back">‹</button>
+      <h2>Вопрос друг другу</h2>
+    </div>
+    <div id="q-body"></div>
+  </section>
+
+  <!-- ИГРЫ -->
+  <section class="scene" id="games-scene">
+    <div class="games-head">
+      <button class="back" id="games-back">‹</button>
+      <h2>Игры вдвоём</h2>
+    </div>
+    <div class="games-grid" id="games-menu">
+      <button class="glass game-tile" data-g="rps"><span class="gem">✊✌✋</span><b>Камень-ножницы-бумага</b><span>матч до 3 или 5</span></button>
+      <button class="glass game-tile" data-g="ttt"><span class="gem">⭕❌</span><b>Крестики-нолики</b><span>классика на двоих</span></button>
+      <button class="glass game-tile" data-g="ships"><span class="gem">🚢</span><b>Морской бой</b><span>передай телефон</span></button>
+      <button class="glass game-tile" data-g="hang"><span class="gem">🔤</span><b>Виселица</b><span>загадай слово</span></button>
+      <button class="glass game-tile" data-g="td"><span class="gem">💋</span><b>Правда или действие</b><span>для двоих</span></button>
+      <button class="glass game-tile" data-g="bsr"><span class="gem">🔫</span><b>Buckshot Roulette</b><span>на нервы</span></button>
+    </div>
+
+    <!-- RPS panel -->
+    <div class="game-panel glass card" id="g-rps" style="display:none">
+      <div class="gp-head"><button class="back" data-menu>‹</button><h3>Камень · Ножницы · Бумага</h3></div>
+      <div class="rps-score">
+        <div class="rps-side her"><div class="rps-name her">Валли</div><div class="rps-pts" id="rps-her-pts">0</div></div>
+        <div class="rps-vs">:</div>
+        <div class="rps-side him"><div class="rps-name him">Ева</div><div class="rps-pts" id="rps-him-pts">0</div></div>
+      </div>
+      <div class="rps-target">
+        <button data-t="3">до 3 побед</button>
+        <button data-t="5">до 5 побед</button>
+      </div>
+      <div id="rps-arena"></div>
+      <div class="rps-stats">
+        <div class="rps-stat"><b id="st-her">0</b><span>матчей Валли</span></div>
+        <div class="rps-stat"><b id="st-him">0</b><span>матчей Ева</span></div>
+        <div class="rps-stat"><b id="st-rounds">0</b><span>раундов</span></div>
+      </div>
+      <div style="font-size:12.5px;color:var(--dim);text-align:center;margin-top:12px" id="st-lead"></div>
+      <div class="rps-hist" id="rps-hist"></div>
+    </div>
+
+    <div class="game-panel glass card" id="g-ttt" style="display:none"></div>
+    <div class="game-panel glass card" id="g-ships" style="display:none"></div>
+    <div class="game-panel glass card" id="g-hang" style="display:none"></div>
+    <div class="game-panel glass card" id="g-td" style="display:none"></div>
+    <div class="game-panel glass card" id="g-bsr" style="display:none"></div>
+  </section>
+
+  <!-- МЫСЛИ -->
+  <section class="scene" id="thoughts-scene">
+    <div class="hut-head"><div class="hut-title" style="font-size:30px">Мысли</div><div class="hut-sub">Нарисуй и запиши день</div></div>
+    <div class="glass card">
+      <div class="card-title">Рисунок дня</div>
+      <div class="draw-wrap"><canvas id="draw"></canvas></div>
+      <div class="draw-tools">
+        <button class="pen warm on" data-c="#e05c3a"></button>
+        <button class="pen cold" data-c="#6fa3d0"></button>
+        <button class="pen light" data-c="#f3ece6"></button>
+        <button class="clear-btn" id="draw-clear">Очистить</button>
+      </div>
+    </div>
+    <div class="glass card">
+      <div class="card-title">Мысль дня</div>
+      <textarea class="tarea" id="thought-day" rows="4" placeholder="О чём вы думаете сегодня..."></textarea>
+    </div>
+    <div class="glass card stat-grid">
+      <div class="stat-cell"><b id="ts-mom">0</b><span>моментов</span></div>
+      <div class="stat-cell"><b id="ts-dream">0</b><span>мечт</span></div>
+      <div class="stat-cell"><b id="ts-msg">0</b><span>сообщений</span></div>
+    </div>
+  </section>
+
+  <!-- КАЛЕНДАРЬ -->
+  <section class="scene flexscene" id="cal-scene">
+    <div class="cal-head">
+      <button class="cal-arrow l" id="cal-prev">‹</button>
+      <div class="cal-month" id="cal-month">Месяц</div>
+      <div class="cal-year" id="cal-year">2026</div>
+      <div class="cal-summary" id="cal-summary"></div>
+      <button class="cal-arrow r" id="cal-next">›</button>
+    </div>
+    <div class="cal-dow"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span class="we">Сб</span><span class="we">Вс</span></div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </section>
+
+  <!-- МОМЕНТЫ -->
+  <section class="scene" id="moments-scene">
+    <div class="hut-head"><div class="hut-title" style="font-size:30px">Моменты</div><div class="hut-sub">Всё, что вы прожили вместе</div></div>
+    <button class="glass card" id="letter-new" style="width:100%;display:flex;align-items:center;gap:12px;text-align:left">
+      <span style="font-size:24px">✉️</span>
+      <span><b style="font-weight:500;font-size:15px">Письмо в будущее</b><br><span style="font-size:12px;color:var(--dim)">Напишите и запечатайте до даты</span></span>
+    </button>
+    <div id="moments-feed"></div>
+  </section>
+
+  <!-- МЕЧТЫ -->
+  <section class="scene" id="dreams-scene">
+    <div class="hut-head"><div class="hut-title" style="font-size:30px">Мечты</div><div class="hut-sub">Куда вы хотите вместе</div></div>
+    <div class="glass card idea-box">
+      <div class="card-title">Идея для свидания</div>
+      <div class="idea empty" id="idea-text">Нажмите, чтобы получить идею ✨</div>
+      <button class="btn ghost" id="idea-btn" style="margin-top:6px">Случайная идея</button>
+    </div>
+    <button class="add-row glass" id="dream-add" style="margin-bottom:14px">＋ Добавить мечту</button>
+    <div id="dreams-list"></div>
+  </section>
+
+  <!-- ЧАТ -->
+  <section class="scene flexscene" id="chat-scene">
+    <div class="chat-top"><h2>Чат</h2></div>
+    <div class="chat-msgs" id="chat-msgs"></div>
+    <div class="chat-bar">
+      <div class="chat-send-toggle">
+        <button class="her on" data-s="her">🤖 Валли</button>
+        <button class="him" data-s="him">🌱 Ева</button>
+      </div>
+      <div class="chat-input-row">
+        <textarea id="chat-input" rows="1" placeholder="Сообщение..."></textarea>
+        <button class="chat-send" id="chat-send">➤</button>
+      </div>
+    </div>
+  </section>
+
+  <nav id="nav">
+    <button class="nav-item on" data-scene="hut-scene"><span class="ic">🛖</span><span class="lb">Шалаш</span></button>
+    <button class="nav-item" data-scene="thoughts-scene"><span class="ic">🪶</span><span class="lb">Мысли</span></button>
+    <button class="nav-item" data-scene="cal-scene"><span class="ic">🗓️</span><span class="lb">Календарь</span></button>
+    <button class="nav-item" data-scene="moments-scene"><span class="ic">🌅</span><span class="lb">Моменты</span></button>
+    <button class="nav-item" data-scene="dreams-scene"><span class="ic">🌠</span><span class="lb">Мечты</span></button>
+    <button class="nav-item" data-scene="chat-scene"><span class="ic">💌</span><span class="lb">Чат</span></button>
+  </nav>
+</div>
+
+<div id="lobby">
+  <div class="lobby-heart">💞</div>
+  <div class="lobby-title">Наш мир</div>
+  <div class="lobby-q">Кто держит этот телефон?</div>
+  <div class="lobby-choices">
+    <button class="lobby-pick her" data-me="her"><span class="lp-em">🤖</span><b>Валли</b><span>тёплая сторона</span></button>
+    <button class="lobby-pick him" data-me="him"><span class="lp-em">🌱</span><b>Ева</b><span>холодная сторона</span></button>
+  </div>
+  <div class="lobby-note">Запомнится на этом устройстве. На втором телефоне партнёр выберет себя — и вы окажетесь в одном общем мире.</div>
+</div>
+
+<div id="sheet-back"></div>
+<div id="sheet"><div class="sheet-grip"></div><div id="sheet-content"></div></div>
+
+<script>
+/* ============ STATE ============ */
+const KEY='nashmir_v1';
+const DEFAULT={
+  startDate:null,
+  song:{title:'',url:''},
+  musli:[],            // {id,text,video}
+  rps:{target:3,herW:0,hisW:0,rounds:0,history:[]}, // history:{w,hs,is,date}
+  cal:{},             // "YYYY-MM-DD": {plan:{text,files[]}, mem:{photo,text,files[]}}
+  drawDay:{},         // "YYYY-MM-DD": dataURL
+  thoughtDay:{},      // "YYYY-MM-DD": text
+  letters:[],         // {id,text,openDate}
+  dreams:[],          // {id,text,done}
+  chat:[],            // {sender,text,ts}
+  chatSender:'her',
+  me:null,            // device-local identity: 'her' | 'him' (NOT synced)
+  qCurrent:null,      // current couple-question id (synced)
+  qAnswers:{}         // { qid: {her, him} } (synced)
+};
+let S;
+try{ S=Object.assign({},DEFAULT,JSON.parse(localStorage.getItem(KEY)||'{}')); }
+catch(e){ S=JSON.parse(JSON.stringify(DEFAULT)); }
+S.rps=Object.assign({},DEFAULT.rps,S.rps||{});
+function save(){ try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){alert('Не хватает памяти для сохранения. Попробуйте фото поменьше.');} if(window.SYNC&&SYNC.enabled)SYNC.schedulePush(); }
+
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const todayKey=()=>fmtKey(new Date());
+function fmtKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function isVideoUrl(u){return /youtu\.be|youtube\.com|vimeo|\.mp4|rutube|vk\.com\/video|tiktok/i.test(u||'');}
+
+/* check background image exists, else fallback gradient */
+(function(){const im=new Image();im.onerror=()=>$('#bg').classList.add('noimg');im.src='eyes.png';})();
+
+/* ============ NAV ============ */
+$$('.nav-item').forEach(b=>b.onclick=()=>{
+  $$('.nav-item').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  $$('.scene').forEach(s=>s.classList.remove('active'));
+  $('#'+b.dataset.scene).classList.add('active');
+  if(b.dataset.scene==='cal-scene')renderCal();
+  if(b.dataset.scene==='moments-scene')renderMoments();
+  if(b.dataset.scene==='thoughts-scene')renderStats();
+  if(b.dataset.scene==='chat-scene')renderChat();
+});
+
+/* ============ BOTTOM SHEET ============ */
+function openSheet(html){$('#sheet-content').innerHTML=html;$('#sheet-back').classList.add('open');$('#sheet').classList.add('open');}
+function closeSheet(){$('#sheet-back').classList.remove('open');$('#sheet').classList.remove('open');}
+$('#sheet-back').onclick=closeSheet;
+
+/* ============ ШАЛАШ: HEADER + COUNTER ============ */
+function daysTogether(){if(!S.startDate)return null;const a=new Date(S.startDate);a.setHours(0,0,0,0);const b=new Date();b.setHours(0,0,0,0);return Math.floor((b-a)/864e5);}
+function nestTitle(d){
+  if(d===null)return['Шалаш','Ваш маленький мир'];
+  if(d<30)return['Искра','Только разгорается'];
+  if(d<120)return['Нора','Вы прячетесь от мира вдвоём'];
+  if(d<365)return['Шалаш','Ваше укрытие построено'];
+  if(d<1000)return['Дом','Здесь тепло и навсегда'];
+  return['Вселенная','Целый мир на двоих'];
+}
+function diffYMD(){
+  if(!S.startDate)return{y:0,m:0,d:0};
+  let a=new Date(S.startDate),b=new Date();a.setHours(0,0,0,0);b.setHours(0,0,0,0);
+  let y=b.getFullYear()-a.getFullYear(),m=b.getMonth()-a.getMonth(),d=b.getDate()-a.getDate();
+  if(d<0){m--;d+=new Date(b.getFullYear(),b.getMonth(),0).getDate();}
+  if(m<0){y--;m+=12;}
+  return{y,m,d};
+}
+function renderHut(){
+  const d=daysTogether();const[t,sub]=nestTitle(d);
+  $('#hut-title').textContent=t;$('#hut-sub').textContent=sub;
+  if(S.startDate){
+    const dt=new Date(S.startDate);
+    $('#date-btn').innerHTML='Вместе с <b>'+dt.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'})+'</b>';
+    $('#counter').style.display='flex';
+    const{y,m,d:dd}=diffYMD();
+    $('#c-y').textContent=y;$('#c-m').textContent=m;$('#c-d').textContent=dd;
+  }else{
+    $('#date-btn').innerHTML='Когда всё началось? <b>Выбрать дату</b>';
+    $('#counter').style.display='none';
+  }
+  renderSong();renderMusli();
+}
+$('#date-btn').onclick=()=>{
+  openSheet(`<div class="sheet-title">Начало вашей истории</div>
+    <div class="field-label">Дата</div>
+    <input type="date" id="sd" value="${S.startDate||''}" max="${todayKey()}">
+    <button class="btn" id="sd-save">Сохранить</button>`);
+  $('#sd-save').onclick=()=>{const v=$('#sd').value;if(v){S.startDate=v;save();renderHut();}closeSheet();};
+};
+
+/* ============ SONG ============ */
+function renderSong(){
+  const n=$('#song-name'),l=$('#song-link');
+  if(S.song.title){n.textContent=S.song.title;n.classList.remove('empty');}
+  else{n.textContent='Ещё не выбрана';n.classList.add('empty');}
+  if(S.song.url){l.style.display='block';l.href=S.song.url;}else l.style.display='none';
+}
+$('#song-edit').onclick=()=>{
+  openSheet(`<div class="sheet-title">Песня дня</div>
+    <div class="field-label">Название трека</div>
+    <input type="text" id="sn" placeholder="Исполнитель — Трек" value="${esc(S.song.title)}">
+    <div class="field-label">Ссылка на Яндекс Музыку</div>
+    <input type="text" id="su" placeholder="https://music.yandex.ru/..." value="${esc(S.song.url)}">
+    <button class="btn" id="song-save">Сохранить</button>`);
+  $('#song-save').onclick=()=>{S.song={title:$('#sn').value.trim(),url:$('#su').value.trim()};save();renderSong();closeSheet();};
+};
+
+/* ============ MUSLI ============ */
+function renderMusli(){
+  const box=$('#musli-list');box.innerHTML='';
+  if(!S.musli.length){box.innerHTML='';return;} // empty => no hint text inside
+  S.musli.forEach(m=>{
+    const el=document.createElement('div');el.className='musli-item';
+    let h='';
+    if(m.text)h+=esc(m.text).replace(/\n/g,'<br>');
+    if(m.video){h+=(m.text?'':'')+`<a class="vid" href="${esc(m.video)}" target="_blank" rel="noopener">▶ ${m.text?'Видео':'Открыть видео'}</a>`;}
+    el.innerHTML=h;
+    el.onclick=(e)=>{if(e.target.classList.contains('vid'))return;editMusli(m.id);};
+    box.appendChild(el);
+  });
+}
+function editMusli(id){
+  const m=id?S.musli.find(x=>x.id===id):{text:'',video:''};
+  openSheet(`<div class="sheet-title">${id?'Мысль':'Новая мысль'}</div>
+    <div class="field-label">Текст, стих или мысль</div>
+    <textarea id="mt" placeholder="Напишите что-нибудь...">${esc(m.text)}</textarea>
+    <div class="field-label">Ссылка на видео (необязательно)</div>
+    <input type="text" id="mv" placeholder="https://..." value="${esc(m.video)}">
+    <button class="btn cold" id="mv-open" style="margin-top:10px;${m.video?'':'display:none'}">▶ Открыть видео</button>
+    <button class="btn" id="m-save">Сохранить</button>
+    ${id?'<button class="btn ghost" id="m-del">Удалить</button>':''}`);
+  $('#mv').oninput=e=>{$('#mv-open').style.display=e.target.value.trim()?'block':'none';};
+  $('#mv-open').onclick=()=>{const u=$('#mv').value.trim();if(u)window.open(u,'_blank');};
+  $('#m-save').onclick=()=>{
+    const text=$('#mt').value.trim(),video=$('#mv').value.trim();
+    if(!text&&!video){closeSheet();return;}
+    if(id){m.text=text;m.video=video;}
+    else S.musli.unshift({id:uid(),text,video});
+    save();renderMusli();closeSheet();
+  };
+  if(id)$('#m-del').onclick=()=>{S.musli=S.musli.filter(x=>x.id!==id);save();renderMusli();closeSheet();};
+}
+$('#musli-add').onclick=()=>editMusli(null);
+
+/* ============ RPS GAME ============ */
+let match=null;
+function newMatch(){match={her:0,him:0,phase:'ready',herReady:false,himReady:false,herPick:null,himPick:null,lastWin:null};renderRPS();}
+function rpsBeat(a,b){if(a===b)return 0;if((a==='r'&&b==='s')||(a==='s'&&b==='p')||(a==='p'&&b==='r'))return 1;return-1;}
+const EM={r:'✊',s:'✌️',p:'✋'},NM={r:'Камень',s:'Ножницы',p:'Бумага'};
+function renderRPSScore(){
+  $('#rps-her-pts').textContent=match?match.her:0;
+  $('#rps-him-pts').textContent=match?match.him:0;
+  $$('.rps-target button').forEach(b=>b.classList.toggle('on',+b.dataset.t===S.rps.target));
+  $('#st-her').textContent=S.rps.herW;$('#st-him').textContent=S.rps.hisW;$('#st-rounds').textContent=S.rps.rounds;
+  let lead='Пока ничья по матчам';
+  if(S.rps.herW>S.rps.hisW)lead='Валли побеждает чаще 🤖';
+  else if(S.rps.hisW>S.rps.herW)lead='Ева побеждает чаще 🌱';
+  if(!S.rps.herW&&!S.rps.hisW)lead='';
+  $('#st-lead').textContent=lead;
+  const hist=$('#rps-hist');hist.innerHTML='';
+  S.rps.history.slice(0,5).forEach(h=>{
+    const r=document.createElement('div');r.className='rps-hrow';
+    r.innerHTML=`<span>${h.w==='her'?'🤖 Валли':'🌱 Ева'}</span><span style="color:var(--dim)">${h.hs} : ${h.is}</span><span style="color:var(--dim2)">${h.date}</span>`;
+    hist.appendChild(r);
+  });
+}
+function renderRPS(){
+  renderRPSScore();
+  const a=$('#rps-arena');
+  if(!match){a.innerHTML='<button class="rps-next" id="rps-start" style="display:block;margin:8px auto">Начать матч</button>';$('#rps-start').onclick=newMatch;return;}
+  if(match.phase==='ready'||match.phase==='choose'){
+    a.innerHTML=`<div class="rps-players">${rpsPanel('her')}${rpsPanel('him')}</div>`;
+    bindPanel('her');bindPanel('him');
+  }else if(match.phase==='reveal'){
+    const res=rpsBeat(match.herPick,match.himPick);
+    let txt=res===0?'Ничья в раунде':res>0?'🤖 Раунд за Валли':'🌱 Раунд за Евой';
+    a.innerHTML=`<div class="rps-reveal">
+      <div class="hands"><span>${EM[match.herPick]}</span><span>${EM[match.himPick]}</span></div>
+      <div style="font-size:11px;letter-spacing:1px;color:var(--dim);display:flex;justify-content:center;gap:30px;margin-bottom:6px"><span style="color:var(--her)">ВАЛЛИ</span><span style="color:var(--him)">ЕВА</span></div>
+      <div class="rps-result">${txt}</div>
+      <button class="rps-next" id="rps-next">Дальше →</button></div>`;
+    $('#rps-next').onclick=nextRound;
+  }else if(match.phase==='over'){
+    const w=match.her>match.him?'her':'him';
+    a.innerHTML=`<div class="rps-reveal">
+      <div style="font-size:50px">${w==='her'?'🤖':'🌱'}</div>
+      <div class="rps-result">${w==='her'?'Валли':'Ева'} побеждает в матче!</div>
+      <div style="color:var(--dim);margin-bottom:14px">${match.her} : ${match.him}</div>
+      <button class="rps-next" id="rps-again">Сыграть ещё</button></div>`;
+    $('#rps-again').onclick=newMatch;
+  }
+}
+function rpsPanel(side){
+  const ready=side==='her'?match.herReady:match.himReady;
+  const pick=side==='her'?match.herPick:match.himPick;
+  const name=side==='her'?'Валли':'Ева';
+  let inner;
+  if(match.phase==='ready'){
+    inner=`<button class="rps-ready ${ready?'done':''}" data-side="${side}">${ready?'Готов ✓':'Готов'}</button>`;
+  }else{ // choose
+    if(pick){inner=`<div class="rps-hidden">🔒</div><div class="rps-pick-done">Выбор сделан</div>`;}
+    else{inner=`<div class="rps-choices">
+      <button data-side="${side}" data-p="r">✊ Камень</button>
+      <button data-side="${side}" data-p="s">✌️ Ножницы</button>
+      <button data-side="${side}" data-p="p">✋ Бумага</button></div>`;}
+  }
+  return `<div class="rps-pl ${side}"><h4>${name}</h4>${inner}</div>`;
+}
+function bindPanel(side){
+  const root=$('.rps-pl.'+side);if(!root)return;
+  root.querySelectorAll('[data-side]').forEach(btn=>{
+    btn.onclick=()=>{
+      if(match.phase==='ready'){
+        if(side==='her')match.herReady=true;else match.himReady=true;
+        if(match.herReady&&match.himReady){match.phase='choose';}
+        renderRPS();
+      }else if(match.phase==='choose'){
+        const p=btn.dataset.p;
+        if(side==='her')match.herPick=p;else match.himPick=p;
+        if(match.herPick&&match.himPick){resolveRound();}
+        else renderRPS();
+      }
+    };
+  });
+}
+function resolveRound(){
+  S.rps.rounds++;
+  const r=rpsBeat(match.herPick,match.himPick);
+  if(r>0)match.her++;else if(r<0)match.him++;
+  if(match.her>=S.rps.target||match.him>=S.rps.target){
+    match.phase='reveal';match._final=true;
+  }else match.phase='reveal';
+  save();renderRPS();
+}
+function nextRound(){
+  if(match.her>=S.rps.target||match.him>=S.rps.target){
+    const w=match.her>match.him?'her':'him';
+    if(w==='her')S.rps.herW++;else S.rps.hisW++;
+    S.rps.history.unshift({w,hs:match.her,is:match.him,date:new Date().toLocaleDateString('ru-RU',{day:'numeric',month:'short'})});
+    S.rps.history=S.rps.history.slice(0,20);
+    save();match.phase='over';renderRPS();
+  }else{
+    match.herReady=false;match.himReady=false;match.herPick=null;match.himPick=null;match.phase='ready';renderRPS();
+  }
+}
+$$('.rps-target button').forEach(b=>b.onclick=()=>{S.rps.target=+b.dataset.t;save();renderRPSScore();if(match&&match.phase==='ready'){match.her=0;match.him=0;renderRPS();}});
+
+/* ============ CALENDAR ============ */
+let calY,calM;
+const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const WDAYS=['вс','пн','вт','ср','чт','пт','сб'];
+function hasPlan(e){return e.plan&&(e.plan.text||(e.plan.files&&e.plan.files.length));}
+function renderCal(){
+  if(calY===undefined){const n=new Date();calY=n.getFullYear();calM=n.getMonth();}
+  $('#cal-month').textContent=MONTHS[calM];
+  $('#cal-year').textContent=calY;
+  const grid=$('#cal-grid');grid.innerHTML='';
+  const first=new Date(calY,calM,1);
+  let lead=(first.getDay()+6)%7; // Monday start
+  const daysIn=new Date(calY,calM+1,0).getDate();
+  const prevDays=new Date(calY,calM,0).getDate();
+  const tk=todayKey();
+  let memCount=0,planCount=0;const memDays=[];
+  for(let i=0;i<lead;i++){
+    const c=document.createElement('div');c.className='cal-cell out';
+    c.innerHTML='<span class="num">'+(prevDays-lead+1+i)+'</span>';grid.appendChild(c);
+  }
+  for(let d=1;d<=daysIn;d++){
+    const key=fmtKey(new Date(calY,calM,d));
+    const entry=S.cal[key]||{};
+    const c=document.createElement('div');c.className='cal-cell';
+    const hasPhoto=entry.mem&&entry.mem.photo;
+    const wd=(lead+d-1)%7;
+    if(wd>=5)c.classList.add('weekend');
+    if(key===tk)c.classList.add('today');
+    if(hasPhoto){c.classList.add('has-photo');memCount++;memDays.push({d,key,entry});}
+    if(hasPlan(entry))planCount++;
+    let h='';
+    if(hasPhoto)h+=`<img class="photo" src="${entry.mem.photo}" loading="lazy">`;
+    h+='<span class="num">'+d+'</span>';
+    if(hasPlan(entry))h+='<span class="plan-dot"></span>';
+    if(hasPhoto&&entry.mem.text)h+=`<span class="pcap">${esc(entry.mem.text)}</span>`;
+    c.innerHTML=h;
+    c.onclick=()=>openDay(key);
+    grid.appendChild(c);
+  }
+  // summary line
+  const sum=$('#cal-summary');
+  if(memCount||planCount){
+    const parts=[];
+    if(memCount)parts.push(`<b>${memCount}</b> ${plural(memCount,'воспоминание','воспоминания','воспоминаний')}`);
+    if(planCount)parts.push(`<b class="p">${planCount}</b> ${plural(planCount,'план','плана','планов')}`);
+    sum.innerHTML=parts.join(' · ');
+  }else sum.innerHTML='ваш месяц вдвоём';
+  // gentle entrance animation
+  grid.classList.remove('anim');void grid.offsetWidth;grid.classList.add('anim');
+}
+function plural(n,one,few,many){const m=n%100,t=n%10;if(m>=11&&m<=14)return many;if(t===1)return one;if(t>=2&&t<=4)return few;return many;}
+$('#cal-prev').onclick=()=>{calM--;if(calM<0){calM=11;calY--;}renderCal();};
+$('#cal-next').onclick=()=>{calM++;if(calM>11){calM=0;calY++;}renderCal();};
+
+const WD_FULL=['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+function memHas(e){return e.mem&&(e.mem.photo||e.mem.text||(e.mem.files||[]).length);}
+function planHas(e){return e.plan&&(e.plan.text||(e.plan.files||[]).length);}
+function dayHasContent(e){return memHas(e)||planHas(e);}
+function fileIsImg(f){return f&&f.type&&f.type.startsWith('image');}
+function authorChip(by){
+  if(by!=='her'&&by!=='him')return '';
+  return `<span class="author-chip ${by}">${FACE[by]} ${NAME[by]}</span>`;
+}
+function openDay(key){
+  const d=new Date(key);const title=d.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+  const e=S.cal[key]||{};const mOn=memHas(e),pOn=planHas(e);
+  openSheet(`<div class="sheet-title">${title}</div>
+    <div class="day-sub">${WD_FULL[d.getDay()]}</div>
+    ${dayHasContent(e)?`<button class="btn" id="ch-view">✨ Итоги дня</button>`:''}
+    <div class="day-actions">
+      <button class="day-act mem" id="ch-mem">
+        <span class="da-ic">📷</span>
+        <span class="da-t"><b>Воспоминание</b><span>${mOn?'фото и текст этого дня':'добавить фото и текст'}</span></span>
+        ${mOn?'<span class="da-status">есть ✓</span>':'<span class="da-arrow">＋</span>'}
+      </button>
+      <button class="day-act plan" id="ch-plan">
+        <span class="da-ic">📌</span>
+        <span class="da-t"><b>План</b><span>${pOn?'что задумали на день':'добавить план и файлы'}</span></span>
+        ${pOn?'<span class="da-status">есть ✓</span>':'<span class="da-arrow">＋</span>'}
+      </button>
+    </div>`);
+  if(dayHasContent(e))$('#ch-view').onclick=()=>openDaySummary(key);
+  $('#ch-plan').onclick=()=>openPlan(key);
+  $('#ch-mem').onclick=()=>openMem(key);
+}
+
+/* итоги дня — собирает всё сохранённое за день в одну сводку */
+function openDaySummary(key){
+  const d=new Date(key);const e=S.cal[key]||{};const mem=e.mem||{},plan=e.plan||{};
+  const photos=[];
+  if(mem.photo)photos.push(mem.photo);
+  (mem.files||[]).forEach(f=>{if(fileIsImg(f))photos.push(f.data);});
+  (plan.files||[]).forEach(f=>{if(fileIsImg(f))photos.push(f.data);});
+  const docs=[...(mem.files||[]),...(plan.files||[])].filter(f=>!fileIsImg(f));
+  const chips=[];
+  if(memHas(e))chips.push(`<span class="ds-chip mem">воспоминание</span>`);
+  if(planHas(e))chips.push(`<span class="ds-chip plan">план</span>`);
+  if(photos.length)chips.push(`<span class="ds-chip">📷 ${photos.length} фото</span>`);
+  if(docs.length)chips.push(`<span class="ds-chip">📎 ${docs.length} ${plural(docs.length,'файл','файла','файлов')}</span>`);
+  let html=`<div class="ds-date">${d.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'})}</div>
+    <div class="ds-wd">${WD_FULL[d.getDay()]}</div>
+    <div class="ds-meta">${chips.join('')}</div>`;
+  if(mem.photo)html+=`<img class="ds-hero" src="${mem.photo}">`;
+  if(mem.text||mem.photo)html+=`<div class="ds-section"><div class="ds-section-title">🧡 Воспоминание ${authorChip(mem.by)}</div>${mem.text?`<div class="ds-text">${esc(mem.text)}</div>`:''}</div>`;
+  if(plan.text)html+=`<div class="ds-section"><div class="ds-section-title">📌 В планах ${authorChip(plan.by)}</div><div class="ds-plan">${esc(plan.text)}</div></div>`;
+  const gallery=photos.filter(p=>p!==mem.photo);
+  if(gallery.length)html+=`<div class="ds-section"><div class="ds-section-title">🖼️ Галерея</div><div class="ds-gallery">${gallery.map(p=>`<img src="${p}">`).join('')}</div></div>`;
+  if(docs.length)html+=`<div class="ds-section"><div class="ds-section-title">📎 Файлы</div><div class="ds-files">${docs.map(f=>`<div class="ds-file">📄 ${esc(f.name)}</div>`).join('')}</div></div>`;
+  html+=`<div class="ds-actions"><button class="btn ghost" id="ds-edit">Изменить</button><button class="btn" id="ds-close">Готово</button></div>`;
+  openSheet(html);
+  $('#ds-edit').onclick=()=>openDay(key);
+  $('#ds-close').onclick=closeSheet;
+}
+
+/* files helper */
+function readFiles(fileList,cb){
+  const files=[...fileList];if(!files.length){cb([]);return;}
+  const out=[];let n=0;
+  files.forEach((f,i)=>{
+    const r=new FileReader();
+    r.onload=()=>{out[i]={name:f.name,type:f.type,data:r.result};if(++n===files.length)cb(out);};
+    r.readAsDataURL(f);
+  });
+}
+function thumbHtml(arr,rmAttr){
+  return (arr||[]).map((f,i)=>`<div class="thumb">${f.type&&f.type.startsWith('image')?`<img src="${f.data}">`:esc(f.name)}<span class="rm" ${rmAttr} data-i="${i}">×</span></div>`).join('');
+}
+
+function openPlan(key){
+  const e=S.cal[key]||{};const p=e.plan||{text:'',files:[]};
+  let files=[...(p.files||[])];
+  openSheet(`<div class="sheet-title">План на день</div>
+    <div class="field-label">📌 Что задумали</div>
+    <textarea id="pt" placeholder="Например, поездка к морю на закате...">${esc(p.text)}</textarea>
+    <div class="field-label">Файлы и фото</div>
+    <label class="file-pick"><span class="fp-ic">📎</span> Прикрепить файлы<input type="file" id="pf" multiple></label>
+    <div class="thumb-row" id="pthumbs">${thumbHtml(files,'data-rm')}</div>
+    <button class="btn cold" id="p-save">Сохранить план</button>
+    ${e.plan?'<button class="btn ghost" id="p-del">Удалить план</button>':''}`);
+  const refresh=()=>$('#pthumbs').innerHTML=thumbHtml(files,'data-rm');
+  $('#pf').onchange=ev=>readFiles(ev.target.files,r=>{files=files.concat(r);refresh();bindRm();});
+  function bindRm(){$('#pthumbs').querySelectorAll('.rm').forEach(x=>x.onclick=()=>{files.splice(+x.dataset.i,1);refresh();bindRm();});}
+  bindRm();
+  $('#p-save').onclick=()=>{
+    const text=$('#pt').value.trim();
+    if(!text&&!files.length){closeSheet();return;}
+    S.cal[key]=S.cal[key]||{};S.cal[key].plan={text,files,by:p.by||S.me};save();closeSheet();renderCal();renderMoments();
+  };
+  if(e.plan)$('#p-del').onclick=()=>{delete S.cal[key].plan;if(!S.cal[key].mem)delete S.cal[key];save();closeSheet();renderCal();renderMoments();};
+}
+
+function openMem(key){
+  const e=S.cal[key]||{};const m=e.mem||{photo:'',text:'',files:[]};
+  let photo=m.photo||'';      // existing main photo preserved unless replaced
+  let files=[...(m.files||[])];
+  openSheet(`<div class="sheet-title">Воспоминание</div>
+    <div class="field-label">🖼 Главное фото</div>
+    <label class="photo-drop ${photo?'has':''}" id="mdrop">
+      <img class="pd-img" id="mprev" src="${photo}" style="${photo?'':'display:none'}">
+      <span class="pd-placeholder" id="mph" style="${photo?'display:none':''}"><span class="pd-ic">📷</span><span>Нажми, чтобы выбрать фото</span></span>
+      <span class="pd-edit" id="medit" style="${photo?'':'display:none'}">✎ Заменить</span>
+      <input type="file" id="mp" accept="image/*">
+    </label>
+    <div class="field-label">🧡 Текст воспоминания</div>
+    <textarea id="mt2" placeholder="Как это было... что вы чувствовали...">${esc(m.text)}</textarea>
+    <div class="field-label">Дополнительные фото и файлы</div>
+    <label class="file-pick"><span class="fp-ic">📎</span> Прикрепить ещё<input type="file" id="mf" multiple></label>
+    <div class="thumb-row" id="mthumbs">${thumbHtml(files,'data-rm')}</div>
+    <button class="btn warm" id="m-save2">Сохранить воспоминание</button>
+    ${e.mem?'<button class="btn ghost" id="m-del2">Удалить воспоминание</button>':''}`);
+  $('#mp').onchange=ev=>readFiles(ev.target.files,r=>{if(r[0]){photo=r[0].data;
+    const img=$('#mprev');img.src=photo;img.style.display='block';
+    $('#mph').style.display='none';$('#medit').style.display='flex';$('#mdrop').classList.add('has');}});
+  const refresh=()=>$('#mthumbs').innerHTML=thumbHtml(files,'data-rm');
+  $('#mf').onchange=ev=>readFiles(ev.target.files,r=>{files=files.concat(r);refresh();bindRm();});
+  function bindRm(){$('#mthumbs').querySelectorAll('.rm').forEach(x=>x.onclick=()=>{files.splice(+x.dataset.i,1);refresh();bindRm();});}
+  bindRm();
+  $('#m-save2').onclick=()=>{
+    const text=$('#mt2').value.trim();
+    if(!photo&&!text&&!files.length){closeSheet();return;}
+    S.cal[key]=S.cal[key]||{};
+    // preserve old photo if no new chosen; remember the author
+    S.cal[key].mem={photo:photo||(e.mem&&e.mem.photo)||'',text,files,by:m.by||S.me};
+    save();closeSheet();renderCal();renderMoments();renderHut();
+  };
+  if(e.mem)$('#m-del2').onclick=()=>{delete S.cal[key].mem;if(!S.cal[key].plan)delete S.cal[key];save();closeSheet();renderCal();renderMoments();};
+}
+
+/* ============ THOUGHTS: DRAW ============ */
+const canvas=$('#draw');const ctx=canvas.getContext('2d');
+let penColor='#e05c3a',drawing=false,lastX=0,lastY=0;
+function setupCanvas(){
+  const w=canvas.parentElement.clientWidth;canvas.width=w;canvas.height=Math.round(w*0.66);
+  const saved=S.drawDay[todayKey()];
+  if(saved){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,canvas.width,canvas.height);img.src=saved;}
+}
+function pos(e){const r=canvas.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return[t.clientX-r.left,t.clientY-r.top];}
+function start(e){drawing=true;[lastX,lastY]=pos(e);e.preventDefault();}
+function move(e){if(!drawing)return;const[x,y]=pos(e);ctx.strokeStyle=penColor;ctx.lineWidth=3.5;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(x,y);ctx.stroke();[lastX,lastY]=[x,y];e.preventDefault();}
+function end(){if(!drawing)return;drawing=false;S.drawDay[todayKey()]=canvas.toDataURL('image/png');save();}
+canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',move);window.addEventListener('mouseup',end);
+canvas.addEventListener('touchstart',start,{passive:false});canvas.addEventListener('touchmove',move,{passive:false});canvas.addEventListener('touchend',end);
+$$('.pen').forEach(p=>p.onclick=()=>{$$('.pen').forEach(x=>x.classList.remove('on'));p.classList.add('on');penColor=p.dataset.c;});
+$('#draw-clear').onclick=()=>{ctx.clearRect(0,0,canvas.width,canvas.height);delete S.drawDay[todayKey()];save();};
+const thoughtDay=$('#thought-day');
+thoughtDay.value=S.thoughtDay[todayKey()]||'';
+thoughtDay.oninput=()=>{S.thoughtDay[todayKey()]=thoughtDay.value;save();};
+function renderStats(){
+  let mom=0;Object.values(S.cal).forEach(e=>{if(e.mem&&e.mem.photo)mom++;});
+  $('#ts-mom').textContent=mom;
+  $('#ts-dream').textContent=S.dreams.length;
+  $('#ts-msg').textContent=S.chat.length;
+}
+
+/* ============ MOMENTS ============ */
+function renderMoments(){
+  const feed=$('#moments-feed');feed.innerHTML='';
+  const items=[];
+  Object.keys(S.cal).forEach(k=>{
+    const e=S.cal[k];
+    if(e.mem&&(e.mem.photo||e.mem.text))items.push({type:'mem',key:k,date:k,data:e.mem});
+    if(e.plan&&(e.plan.text||(e.plan.files||[]).length))items.push({type:'plan',key:k,date:k,data:e.plan});
+  });
+  items.sort((a,b)=>b.date<a.date?-1:1);
+  // letters
+  const letterItems=S.letters.map(l=>({type:'letter',date:l.openDate,data:l}));
+  // render letters first if any, then feed
+  letterItems.forEach(l=>feed.appendChild(letterCard(l.data)));
+  if(!items.length&&!letterItems.length){
+    feed.innerHTML+='<div class="empty-hint">Здесь появятся ваши планы и воспоминания.<br>Добавьте первое в Календаре 📅</div>';
+    return;
+  }
+  items.forEach(it=>{
+    const c=document.createElement('div');c.className='glass moment';
+    const dStr=new Date(it.date).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+    if(it.type==='mem'){
+      let h='';
+      if(it.data.photo)h+=`<img class="cover" src="${it.data.photo}">`;
+      h+=`<div class="moment-body"><div class="moment-top"><span class="moment-tag tag-mem">Воспоминание</span>${authorChip(it.data.by)}</div>
+        <div class="moment-date">${dStr}</div>
+        ${it.data.text?`<div class="moment-text">${esc(it.data.text).replace(/\n/g,'<br>')}</div>`:''}
+        ${filesRow(it.data.files)}</div>`;
+      c.innerHTML=h;
+    }else{
+      c.innerHTML=`<div class="moment-body"><div class="moment-top"><span class="moment-tag tag-plan">План</span>${authorChip(it.data.by)}</div>
+        <div class="moment-date">${dStr}</div>
+        ${it.data.text?`<div class="moment-text">${esc(it.data.text).replace(/\n/g,'<br>')}</div>`:''}
+        ${filesRow(it.data.files)}</div>`;
+    }
+    c.onclick=()=>openDay(it.key);
+    feed.appendChild(c);
+  });
+}
+function filesRow(files){
+  if(!files||!files.length)return'';
+  return '<div class="moment-files">'+files.map(f=>f.type&&f.type.startsWith('image')?`<img src="${f.data}">`:`<span class="file">📎 ${esc(f.name)}</span>`).join('')+'</div>';
+}
+function letterCard(l){
+  const c=document.createElement('div');c.className='glass moment';
+  const open=new Date(l.openDate);open.setHours(0,0,0,0);const now=new Date();now.setHours(0,0,0,0);
+  const unlocked=now>=open;
+  const dStr=open.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+  if(unlocked){
+    c.innerHTML=`<div class="moment-body"><span class="moment-tag tag-letter">Письмо из прошлого</span>
+      <div class="moment-date">Открыто ${dStr}</div>
+      <div class="moment-text">${esc(l.text).replace(/\n/g,'<br>')}</div></div>`;
+  }else{
+    c.innerHTML=`<div class="moment-body"><span class="moment-tag tag-letter">Письмо в будущее</span>
+      <div class="letter-locked"><span class="lock">🔒</span><span>Запечатано до ${dStr}</span></div></div>`;
+  }
+  c.onclick=()=>{if(confirm('Удалить это письмо?')){S.letters=S.letters.filter(x=>x.id!==l.id);save();renderMoments();}};
+  return c;
+}
+$('#letter-new').onclick=()=>{
+  openSheet(`<div class="sheet-title">Письмо в будущее</div>
+    <div class="field-label">Текст письма</div>
+    <textarea id="lt" placeholder="Дорогие мы из будущего..."></textarea>
+    <div class="field-label">Открыть в день</div>
+    <input type="date" id="ld" min="${todayKey()}">
+    <button class="btn" id="l-save">Запечатать ✉️</button>`);
+  $('#l-save').onclick=()=>{
+    const text=$('#lt').value.trim(),date=$('#ld').value;
+    if(!text||!date){alert('Заполните текст и дату');return;}
+    S.letters.unshift({id:uid(),text,openDate:date});save();closeSheet();renderMoments();
+  };
+};
+
+/* ============ DREAMS ============ */
+const DATE_IDEAS=['Сходить туда, где у вас было первое свидание','Приготовить новое блюдо вместе','Устроить пикник под звёздами','Посмотреть рассвет','Сделать фотосессию вдвоём','Съездить в город, где не были','Устроить вечер настолок','Написать друг другу письма и обменяться','Сходить в баню/спа','Танцевать на кухне под песню дня','Собрать пазл на 1000 деталей','Поход с палаткой','Сходить на крышу с видом','Прокатиться на велосипедах','Устроить домашний киномарафон','Попробовать кухню страны, где хотите побывать','Покататься на лодке/сапе','Сходить на концерт','Прогулка по ночному городу','Завтрак в постель по очереди'];
+function renderDreams(){
+  const box=$('#dreams-list');box.innerHTML='';
+  if(!S.dreams.length){box.innerHTML='<div class="empty-hint">Пока ни одной мечты.<br>Добавьте, куда хотите вместе ✨</div>';return;}
+  S.dreams.forEach(d=>{
+    const el=document.createElement('div');el.className='glass dream'+(d.done?' done':'');
+    el.innerHTML=`<div class="chk">${d.done?'✓':''}</div><div class="dtext">${esc(d.text)}</div><button class="del">🗑</button>`;
+    el.querySelector('.chk').onclick=()=>{d.done=!d.done;save();renderDreams();};
+    el.querySelector('.dtext').onclick=()=>{d.done=!d.done;save();renderDreams();};
+    el.querySelector('.del').onclick=()=>{S.dreams=S.dreams.filter(x=>x.id!==d.id);save();renderDreams();};
+    box.appendChild(el);
+  });
+}
+$('#dream-add').onclick=()=>{
+  openSheet(`<div class="sheet-title">Новая мечта</div>
+    <div class="field-label">О чём мечтаете</div>
+    <input type="text" id="dr" placeholder="Например, увидеть северное сияние">
+    <button class="btn" id="dr-save">Добавить</button>`);
+  setTimeout(()=>$('#dr').focus(),300);
+  $('#dr-save').onclick=()=>{const v=$('#dr').value.trim();if(v){S.dreams.unshift({id:uid(),text:v,done:false});save();renderDreams();}closeSheet();};
+};
+$('#idea-btn').onclick=()=>{
+  const t=$('#idea-text');t.textContent=DATE_IDEAS[Math.floor(Math.random()*DATE_IDEAS.length)];t.classList.remove('empty');
+};
+
+/* ============ CHAT ============ */
+function renderChat(){
+  const box=$('#chat-msgs');box.innerHTML='';
+  if(!S.chat.length){box.innerHTML='<div class="chat-empty">Пока тихо.<br>Напишите друг другу первое сообщение 💬</div>';return;}
+  S.chat.forEach(m=>{
+    const b=document.createElement('div');b.className='bubble '+m.sender;
+    const t=new Date(m.ts).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    b.innerHTML=esc(m.text).replace(/\n/g,'<br>')+`<div class="t">${t}</div>`;
+    box.appendChild(b);
+  });
+  box.scrollTop=box.scrollHeight;
+}
+$$('.chat-send-toggle button').forEach(b=>b.onclick=()=>{
+  $$('.chat-send-toggle button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.chatSender=b.dataset.s;save();
+});
+const chatInput=$('#chat-input');
+chatInput.addEventListener('input',()=>{chatInput.style.height='auto';chatInput.style.height=Math.min(chatInput.scrollHeight,96)+'px';});
+function sendMsg(){
+  const v=chatInput.value.trim();if(!v)return;
+  S.chat.push({sender:S.chatSender,text:v,ts:Date.now()});save();
+  chatInput.value='';chatInput.style.height='auto';renderChat();
+}
+$('#chat-send').onclick=sendMsg;
+chatInput.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
+// restore chat sender toggle
+$$('.chat-send-toggle button').forEach(b=>b.classList.toggle('on',b.dataset.s===S.chatSender));
+
+/* ============ GAMES HUB ============ */
+S.gameStats=S.gameStats||{ttt:{her:0,him:0,draw:0},bsr:{her:0,him:0},ships:{her:0,him:0}};
+function showScene(id){$$('.scene').forEach(s=>s.classList.remove('active'));$('#'+id).classList.add('active');}
+$('#games-launch').onclick=()=>{showScene('games-scene');backToMenu();};
+$('#games-back').onclick=()=>{showScene('hut-scene');};
+function backToMenu(){$$('.game-panel').forEach(p=>p.style.display='none');$('#games-menu').style.display='grid';}
+$$('#games-menu .game-tile').forEach(t=>t.onclick=()=>openGame(t.dataset.g));
+$$('.game-panel [data-menu]').forEach(b=>b.onclick=backToMenu);
+function openGame(g){
+  $('#games-menu').style.display='none';
+  $$('.game-panel').forEach(p=>p.style.display='none');
+  $('#g-'+g).style.display='block';
+  if(g==='rps')renderRPS();
+  if(g==='ttt')renderTTT();
+  if(g==='ships')renderShips();
+  if(g==='hang')renderHang();
+  if(g==='td')renderTD();
+  if(g==='bsr')renderBSR();
+}
+function gpHead(title){return `<div class="gp-head"><button class="back" data-menu>‹</button><h3>${title}</h3></div>`;}
+function rebindMenu(panel){panel.querySelectorAll('[data-menu]').forEach(b=>b.onclick=backToMenu);}
+
+/* ---------- TIC-TAC-TOE ---------- */
+let tttG=null;
+function newTTT(){return {b:Array(9).fill(''),turn:'her',over:false,winLine:null};}
+function tttWin(b){
+  const L=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for(const l of L){if(b[l[0]]&&b[l[0]]===b[l[1]]&&b[l[1]]===b[l[2]])return l;}
+  return null;
+}
+function renderTTT(){
+  if(!tttG)tttG=newTTT();const g=tttG;const p=$('#g-ttt');
+  let banner;
+  if(g.over){
+    if(g.winLine){const w=g.b[g.winLine[0]]==='X'?'her':'him';banner=`Победа: <b class="${w}">${NAME[w]}</b> 🎉`;}
+    else banner='Ничья 🤝';
+  }else{banner=`Ходит <b class="${g.turn}">${g.turn==='her'?NAME.her+' ✕':NAME.him+' ◯'}</b>`;}
+  const st=S.gameStats.ttt;
+  p.innerHTML=gpHead('Крестики-нолики')+
+    `<div class="turn-banner">${banner}</div>
+     <div class="ttt">${g.b.map((c,i)=>`<div class="ttt-cell ${c==='X'?'x':c==='O'?'o':''} ${g.winLine&&g.winLine.includes(i)?'win':''}" data-i="${i}">${c==='X'?'✕':c==='O'?'◯':''}</div>`).join('')}</div>
+     <div style="text-align:center;font-size:12px;color:var(--dim);margin-top:14px">${NAME.her} ${st.her} · ${NAME.him} ${st.him} · ничьих ${st.draw}</div>
+     <button class="g-btn ghost" id="ttt-new">Новая партия</button>`;
+  rebindMenu(p);
+  p.querySelectorAll('.ttt-cell').forEach(c=>c.onclick=()=>{
+    const i=+c.dataset.i;if(g.over||g.b[i])return;
+    g.b[i]=g.turn==='her'?'X':'O';
+    const w=tttWin(g.b);
+    if(w){g.over=true;g.winLine=w;const win=g.b[w[0]]==='X'?'her':'him';S.gameStats.ttt[win]++;save();}
+    else if(g.b.every(x=>x)){g.over=true;S.gameStats.ttt.draw++;save();}
+    else g.turn=g.turn==='her'?'him':'her';
+    renderTTT();
+  });
+  $('#ttt-new').onclick=()=>{tttG=newTTT();renderTTT();};
+}
+
+/* ---------- HANGMAN ---------- */
+const RUS='АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
+const HANGFACE=['😏','🙂','😐','😟','😧','😨','💀'];
+let hangG=null;
+function renderHang(){
+  if(!hangG)hangG={phase:'set',word:'',guessed:[],lives:6};
+  const g=hangG;const p=$('#g-hang');
+  if(g.phase==='set'){
+    p.innerHTML=gpHead('Виселица')+
+      `<div class="turn-banner"><b class="her">Валли</b> или <b class="him">Ева</b> загадывает слово, другой не подсматривает 🙈</div>
+       <div class="field-label">Секретное слово</div>
+       <input type="text" class="sheet-in" id="hang-input" placeholder="например, поцелуй" autocomplete="off">
+       <button class="g-btn" id="hang-go">Загадать и спрятать</button>`;
+    rebindMenu(p);
+    $('#hang-go').onclick=()=>{
+      const w=$('#hang-input').value.trim().toUpperCase().replace(/Ё/g,'Е');
+      if(!/[А-Я]/.test(w)){alert('Введите слово русскими буквами');return;}
+      hangG={phase:'guess',word:w,guessed:[],lives:6};renderHang();
+    };
+    return;
+  }
+  const word=g.word;
+  const mistakes=6-g.lives;
+  const masked=[...word].map(ch=>RUS.includes(ch)?(g.guessed.includes(ch)?ch:'_'):ch).join(' ');
+  const solved=[...word].every(ch=>!RUS.includes(ch)||g.guessed.includes(ch));
+  const lost=g.lives<=0;
+  let banner;
+  if(solved)banner='Отгадано! 🎉';
+  else if(lost)banner=`Проигрыш. Слово: <b>${word}</b>`;
+  else banner='Угадывай буквы';
+  p.innerHTML=gpHead('Виселица')+
+    `<div class="turn-banner">${banner}</div>
+     <div class="hang-fig">${HANGFACE[Math.min(mistakes,6)]}</div>
+     <div class="hang-lives">${'❤️'.repeat(Math.max(g.lives,0))}${'🖤'.repeat(mistakes)}</div>
+     <div class="hang-word">${solved||lost?esc(word).split('').join(' '):masked}</div>
+     ${solved||lost?`<button class="g-btn" id="hang-again">Загадать ещё</button>`:
+       `<div class="hang-keys">${[...RUS].map(l=>{
+         const used=g.guessed.includes(l);
+         const cls=used?(word.includes(l)?'good':'bad'):'';
+         return `<button data-l="${l}" ${used?'disabled':''} class="${cls}">${l}</button>`;}).join('')}</div>`}`;
+  rebindMenu(p);
+  if(solved||lost){$('#hang-again').onclick=()=>{hangG=null;renderHang();};return;}
+  p.querySelectorAll('.hang-keys button').forEach(b=>b.onclick=()=>{
+    const l=b.dataset.l;if(g.guessed.includes(l))return;
+    g.guessed.push(l);
+    if(!word.includes(l))g.lives--;
+    renderHang();
+  });
+}
+
+/* ---------- BATTLESHIP ---------- */
+const BS_N=7, BS_SHIPS=[3,2,2,1,1];
+let shipsG=null;
+function bsPlace(n,sizes){
+  const occ=new Set(),ships=[];
+  for(const len of sizes){
+    let placed=false,tries=0;
+    while(!placed&&tries++<400){
+      const horiz=Math.random()<.5;
+      const r=Math.floor(Math.random()*n),c=Math.floor(Math.random()*n);
+      const cells=[];let ok=true;
+      for(let k=0;k<len;k++){
+        const rr=r+(horiz?0:k),cc=c+(horiz?k:0);
+        if(rr>=n||cc>=n){ok=false;break;}
+        const id=rr*n+cc;
+        // no touching: check neighbors
+        for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nb=(rr+dr)*n+(cc+dc);if((rr+dr)>=0&&(rr+dr)<n&&(cc+dc)>=0&&(cc+dc)<n&&occ.has(nb)){ok=false;}}
+        cells.push(id);
+      }
+      if(ok&&cells.every(x=>!occ.has(x))){cells.forEach(x=>occ.add(x));ships.push(cells);placed=true;}
+    }
+  }
+  return {occ,ships};
+}
+function newShipsBoard(){const{occ,ships}=bsPlace(BS_N,BS_SHIPS);return{ships,shipCells:new Set(occ),shots:new Set()};}
+function newShips(){return{phase:'place-her',n:BS_N,boards:{her:newShipsBoard(),him:newShipsBoard()},attacker:'her',last:''};}
+function bsSunkAll(board){for(const c of board.shipCells)if(!board.shots.has(c))return false;return true;}
+function renderShips(){
+  if(!shipsG)shipsG=newShips();const g=shipsG;const p=$('#g-ships');
+  const me=g.phase==='place-her'?'her':g.phase==='place-him'?'him':null;
+  // placement phase
+  if(g.phase.startsWith('place')){
+    const who=NAME[me];const board=g.boards[me];
+    p.innerHTML=gpHead('Морской бой')+
+      `<div class="turn-banner"><b class="${me}">${who}</b> расставляет флот</div>
+       <div class="bs-grid" style="--n:${g.n}">${gridCells(board,true)}</div>
+       <div class="bs-legend">Корабли: ${BS_SHIPS.join(', ')} клеток</div>
+       <button class="g-btn ghost" id="bs-shuffle">Перемешать</button>
+       <button class="g-btn" id="bs-ready">Флот готов →</button>`;
+    rebindMenu(p);
+    $('#bs-shuffle').onclick=()=>{g.boards[me]=newShipsBoard();renderShips();};
+    $('#bs-ready').onclick=()=>{
+      if(me==='her'){g.phase='pass-to-him-place';}
+      else{g.phase='pass-to-battle';}
+      renderShips();
+    };
+    return;
+  }
+  // pass screens
+  if(g.phase==='pass-to-him-place'){passScreen(p,NAME.him,'расставит свой флот',()=>{g.phase='place-him';renderShips();});return;}
+  if(g.phase==='pass-to-battle'){passScreen(p,NAME.her,'стреляет первой',()=>{g.phase='battle';g.attacker='her';renderShips();});return;}
+  if(g.phase.startsWith('pass-turn-')){
+    const next=g.phase.endsWith('her')?NAME.her:NAME.him;
+    passScreen(p,next,'твой выстрел',()=>{g.phase='battle';renderShips();});return;
+  }
+  if(g.phase==='over'){
+    const w=g.winner;S.gameStats.ships[w]=(S.gameStats.ships[w]||0)+1;
+    p.innerHTML=gpHead('Морской бой')+
+      `<div class="td-card ${w==='her'?'dare':'truth'}"><div style="font-size:48px">${w==='her'?'🤖':'🌱'}</div>
+        <div class="tdtext">${NAME[w]} потопил(а) весь флот!</div></div>
+       <button class="g-btn" id="bs-restart">Новая битва</button>`;
+    rebindMenu(p);
+    $('#bs-restart').onclick=()=>{shipsG=null;renderShips();};
+    g.phase='_done';save();return;
+  }
+  // battle: attacker shoots defender
+  const att=g.attacker, def=att==='her'?'him':'her';
+  const defBoard=g.boards[def];
+  p.innerHTML=gpHead('Морской бой')+
+    `<div class="turn-banner">Стреляет <b class="${att}">${NAME[att]}</b> · ${g.last||'выбери клетку'}</div>
+     <div class="bs-grid" style="--n:${g.n}">${gridCells(defBoard,false)}</div>
+     <div class="bs-legend">💥 попадание · • мимо</div>`;
+  rebindMenu(p);
+  p.querySelectorAll('.bs-cell[data-i]').forEach(c=>c.onclick=()=>{
+    const i=+c.dataset.i;if(defBoard.shots.has(i))return;
+    defBoard.shots.add(i);
+    const hit=defBoard.shipCells.has(i);
+    g.last=hit?'Попадание! 💥':'Мимо 🌊';
+    if(bsSunkAll(defBoard)){g.winner=att;g.phase='over';renderShips();return;}
+    g.attacker=def;g.phase='pass-turn-'+def;renderShips();
+  });
+}
+function gridCells(board,showShips){
+  let h='';
+  const n=BS_N;
+  for(let i=0;i<n*n;i++){
+    const isShip=board.shipCells.has(i),shot=board.shots.has(i);
+    let cls='bs-cell',content='';
+    if(shot&&isShip){cls+=' hit';content='💥';}
+    else if(shot){cls+=' miss';}
+    else if(showShips&&isShip){cls+=' ship';}
+    h+=`<div class="${cls}" data-i="${i}">${content}</div>`;
+  }
+  return h;
+}
+function passScreen(p,name,action,cb){
+  p.innerHTML=gpHead('Морской бой')+
+    `<div class="pass-screen"><div class="pem">📱➡️</div>
+      <p>Передай телефон</p><p style="font-size:20px;color:var(--text)"><b>${name}</b></p>
+      <p>${action}. Не подсматривай 🙈</p>
+      <button class="g-btn" id="pass-ok">Я готов(а)</button></div>`;
+  rebindMenu(p);
+  $('#pass-ok').onclick=cb;
+}
+
+/* ---------- TRUTH OR DARE ---------- */
+const TD_TRUTH=['Что ты почувствовал(а) при нашей первой встрече?','О каком моменте с нами ты вспоминаешь чаще всего?','Что я делаю такого, от чего тебе хорошо?','Какая твоя любимая часть наших обычных дней?','Что бы ты хотел(а), чтобы мы делали чаще?','О чём ты мечтаешь для нас через 5 лет?','Какой комплимент от меня ты помнишь до сих пор?','Что в моей внешности тебе нравится больше всего?','Когда ты понял(а), что влюбился(ась)?','Какой наш общий секрет ты любишь больше всего?','Что заставляет тебя скучать по мне сильнее всего?','Какое наше свидание было лучшим?','Что я могу сделать, чтобы ты почувствовал(а) себя особенным(ой)?','О чём ты стесняешься меня попросить?','Какая мелочь во мне тебя умиляет?'];
+const TD_DARE=['Поцелуй меня так, как в самый первый раз','Сделай мне массаж плеч 2 минуты','Скажи 5 вещей, за которые ты меня любишь','Изобрази, как мы познакомились','Спой строчку из «песни дня»','Обнимай меня и не отпускай минуту','Напиши мне сладкое сообщение прямо сейчас','Покажи свой самый смущающий танец','Сделай селфи, на котором мы оба смеёмся','Прошепчи мне на ухо комплимент','Покорми меня чем-нибудь вкусным','Придумай нам ласковое прозвище','Сыграй романтичную сцену из фильма','Закрой глаза и угадай, куда я тебя поцелую','Сделай для меня что-то приятное в ближайший час'];
+let tdG=null;
+function renderTD(){
+  if(!tdG)tdG={mode:'rnd',turn:'her',card:null,type:null};
+  const g=tdG;const p=$('#g-td');
+  p.innerHTML=gpHead('Правда или действие')+
+    `<div class="turn-banner">Ход: <b class="${g.turn}">${NAME[g.turn]}</b></div>
+     <div class="g-seg">
+       <button data-m="truth" class="${g.mode==='truth'?'on':''}">Правда</button>
+       <button data-m="dare" class="${g.mode==='dare'?'on':''}">Действие</button>
+       <button data-m="rnd" class="${g.mode==='rnd'?'on':''}">Случайно</button>
+     </div>
+     <div class="td-card ${g.type||''}">
+       ${g.card?`<div class="tdtag">${g.type==='truth'?'Правда':'Действие'}</div><div class="tdtext">${esc(g.card)}</div>`
+              :`<div class="tdempty">Нажми «Тянуть карту» 💫</div>`}
+     </div>
+     <button class="g-btn" id="td-draw">Тянуть карту</button>`;
+  rebindMenu(p);
+  p.querySelectorAll('.g-seg button').forEach(b=>b.onclick=()=>{g.mode=b.dataset.m;renderTD();});
+  $('#td-draw').onclick=()=>{
+    let type=g.mode==='rnd'?(Math.random()<.5?'truth':'dare'):g.mode;
+    const deck=type==='truth'?TD_TRUTH:TD_DARE;
+    g.type=type;g.card=deck[Math.floor(Math.random()*deck.length)];
+    g.turn=g.turn==='her'?'him':'her';
+    renderTD();
+  };
+}
+
+/* ---------- BUCKSHOT ROULETTE ---------- */
+const BSR_ITEMS={cig:'🚬',glass:'🔍',beer:'🍺',saw:'🔪',cuff:'⛓️'};
+const BSR_ITEM_NAMES={cig:'Сигареты (+1 ❤️)',glass:'Лупа (узнать патрон)',beer:'Пиво (выбросить патрон)',saw:'Пила (×2 урон)',cuff:'Наручники (пропуск хода)'};
+let bsrG=null;
+function bsrNew(){
+  const g={hp:{her:4,him:4},maxHp:4,turn:'her',shells:[],items:{her:[],him:[]},saw:false,cuff:{her:false,him:false},known:null,info:'',over:false};
+  bsrReload(g);return g;
+}
+function bsrReload(g){
+  const total=2+Math.floor(Math.random()*4)*2; // 2,4,6,8
+  let live=Math.max(1,Math.round(total*(0.35+Math.random()*0.3)));
+  if(live>=total)live=total-1;
+  const blanks=total-live;
+  const arr=Array(live).fill('live').concat(Array(blanks).fill('blank'));
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+  g.shells=arr;g.known=null;g.saw=false;
+  // hand out items
+  const kinds=Object.keys(BSR_ITEMS);
+  ['her','him'].forEach(s=>{const n=1+Math.floor(Math.random()*3);for(let i=0;i<n;i++){if(g.items[s].length<6)g.items[s].push(kinds[Math.floor(Math.random()*kinds.length)]);}});
+  g.info=`Заряжено: ${live} боевых · ${blanks} холостых`;
+}
+function bsrEndTurn(g){
+  let next=g.turn==='her'?'him':'her';
+  if(g.cuff[next]){g.cuff[next]=false;g.info+=' · '+NAME[next]+' в наручниках, пропуск';next=g.turn;}
+  g.turn=next;g.saw=false;g.known=null;
+}
+function bsrFire(g,atSelf){
+  if(!g.shells.length)return;
+  const shell=g.shells.shift();g.known=null;
+  const shooter=g.turn, target=atSelf?g.turn:(g.turn==='her'?'him':'her');
+  const dmg=g.saw?2:1;
+  if(shell==='live'){
+    g.hp[target]-=dmg;
+    g.info=(atSelf?'В себя — БОЕВОЙ':'Выстрел в '+NAME[target]+' — БОЕВОЙ')+` 💥 −${dmg}`;
+    g.saw=false;
+    if(g.hp[target]<=0){g.over=true;g.winner=target==='her'?'him':'her';return;}
+    bsrEndTurn(g);
+  }else{ // blank
+    g.saw=false;
+    if(atSelf){g.info='В себя — холостой 😮‍💨 ходишь снова';}
+    else{g.info='Выстрел — холостой 🌬';bsrEndTurn(g);}
+  }
+  if(!g.shells.length&&!g.over){bsrReload(g);}
+}
+function bsrUseItem(g,idx){
+  const s=g.turn;const it=g.items[s][idx];if(!it)return;
+  if(it==='cig'){if(g.hp[s]<g.maxHp+2){g.hp[s]++;g.info='🚬 +1 ❤️';}else g.info='Уже полное здоровье';}
+  else if(it==='glass'){g.known=g.shells[0]||null;g.info='🔍 Текущий патрон: '+(g.known==='live'?'БОЕВОЙ':'холостой');}
+  else if(it==='beer'){if(g.shells.length){const e=g.shells.shift();g.info='🍺 Выброшен '+(e==='live'?'боевой':'холостой')+' патрон';g.known=null;if(!g.shells.length){bsrReload(g);}}}
+  else if(it==='saw'){g.saw=true;g.info='🔪 Следующий боевой нанесёт ×2';}
+  else if(it==='cuff'){const o=s==='her'?'him':'her';g.cuff[o]=true;g.info='⛓️ '+NAME[o]+' пропустит ход';}
+  g.items[s].splice(idx,1);
+}
+function renderBSR(){
+  if(!bsrG)bsrG=bsrNew();const g=bsrG;const p=$('#g-bsr');
+  if(g.over){
+    S.gameStats.bsr[g.winner]=(S.gameStats.bsr[g.winner]||0)+1;
+    p.innerHTML=gpHead('Buckshot Roulette')+
+      `<div class="td-card ${g.winner==='her'?'dare':'truth'}"><div style="font-size:50px">${g.winner==='her'?'🤖':'🌱'}</div>
+        <div class="tdtext">${NAME[g.winner]} выжил(а)!</div></div>
+       <div style="text-align:center;font-size:12px;color:var(--dim);margin-top:12px">${NAME.her} ${S.gameStats.bsr.her} · ${NAME.him} ${S.gameStats.bsr.him}</div>
+       <button class="g-btn" id="bsr-again">Ещё раунд</button>`;
+    rebindMenu(p);save();
+    $('#bsr-again').onclick=()=>{bsrG=null;renderBSR();};
+    return;
+  }
+  const cur=g.turn;
+  p.innerHTML=gpHead('Buckshot Roulette')+
+    `<div class="bsr-hp">
+      <div class="side her ${cur==='her'?'act':''}"><div class="nm">🤖 Валли</div><div class="bsr-hearts">${'❤️'.repeat(Math.max(g.hp.her,0))||'☠️'}</div></div>
+      <div class="side him ${cur==='him'?'act':''}"><div class="nm">🌱 Ева</div><div class="bsr-hearts">${'❤️'.repeat(Math.max(g.hp.him,0))||'☠️'}</div></div>
+     </div>
+     <div class="bsr-gun">🔫</div>
+     <div class="bsr-shells">${g.shells.map((s,i)=>`<div class="bsr-shell" style="${i===0&&g.known?(g.known==='live'?'background:var(--her)':'background:var(--him)'):''}"></div>`).join('')}</div>
+     <div class="bsr-info">${g.info||''}</div>
+     <div class="bsr-actions">
+       <button class="bsr-shoot-self" id="bsr-self">В себя</button>
+       <button class="bsr-shoot-opp" id="bsr-opp">В ${cur==='her'?NAME.him:NAME.her}</button>
+     </div>
+     <div class="bsr-label">Предметы хода: ${NAME[cur]}</div>
+     <div class="bsr-items">${(g.items[cur].length?g.items[cur]:['—']).map((it,i)=>it==='—'?`<span style="color:var(--dim2);font-size:12px;align-self:center">нет предметов</span>`:`<button class="bsr-item ${cur}" data-it="${i}" title="${BSR_ITEM_NAMES[it]}">${BSR_ITEMS[it]}</button>`).join('')}</div>`;
+  rebindMenu(p);
+  $('#bsr-self').onclick=()=>{bsrFire(g,true);renderBSR();};
+  $('#bsr-opp').onclick=()=>{bsrFire(g,false);renderBSR();};
+  p.querySelectorAll('.bsr-item[data-it]').forEach(b=>b.onclick=()=>{bsrUseItem(g,+b.dataset.it);renderBSR();});
+}
+
+/* ============ IDENTITY / LOBBY ============ */
+const NAME={her:'Валли',him:'Ева'};
+const FACE={her:'🤖',him:'🌱'};
+function applyIdentity(){
+  const p=$('#prof-btn');if(!p)return;
+  if(S.me){p.textContent=FACE[S.me];p.className='prof-btn '+S.me;}
+  else{p.textContent='🙂';p.className='prof-btn';}
+}
+function showLobby(){$('#lobby').classList.add('show');}
+function hideLobby(){$('#lobby').classList.remove('show');}
+$$('#lobby .lobby-pick').forEach(b=>b.onclick=()=>{
+  S.me=b.dataset.me;S.chatSender=S.me;save();applyIdentity();hideLobby();refreshAll();
+});
+$('#prof-btn').onclick=()=>{
+  openSheet(`<div class="sheet-title">Кто ты в паре</div>
+    <div class="sheet-choice">
+      <button id="pick-her"><span class="em">🤖</span>Валли</button>
+      <button id="pick-him"><span class="em">🌱</span>Ева</button>
+    </div>
+    <p style="font-size:12px;color:var(--dim);text-align:center;margin-top:16px;line-height:1.55">Выбор хранится только на этом телефоне. Меняй, если передаёшь устройство партнёру.</p>`);
+  const set=m=>{S.me=m;S.chatSender=m;save();applyIdentity();closeSheet();refreshAll();};
+  $('#pick-her').onclick=()=>set('her');$('#pick-him').onclick=()=>set('him');
+};
+
+/* ============ COUPLE QUESTION ============ */
+const QUESTIONS=[
+  {id:'q1',q:'Какое моё качество ты любишь больше всего?'},
+  {id:'q2',q:'О каком нашем дне ты вспоминаешь чаще всего?'},
+  {id:'q3',q:'Если бы у нас было одно общее желание — какое?'},
+  {id:'q4',q:'Какая моя привычка тебя умиляет?'},
+  {id:'q5',q:'Куда бы ты хотел(а) сбежать со мной прямо сейчас?'},
+  {id:'q6',q:'Что для тебя значит «дом»?'},
+  {id:'q7',q:'Какой наш момент ты бы хотел(а) пережить заново?'},
+  {id:'q8',q:'Что я делаю, отчего ты чувствуешь себя любимым(ой)?'},
+  {id:'q9',q:'О чём ты мечтал(а) в детстве?'},
+  {id:'q10',q:'Какая песня напоминает тебе обо мне?'},
+  {id:'q11',q:'За что ты сказал(а) бы мне спасибо сегодня?'},
+  {id:'q12',q:'Как ты представляешь нас через 10 лет?'},
+  {id:'o1',q:'Идеальный выходной вдвоём — это…',opts:['Дома под пледом','Путешествие','Прогулка и кафе','Спорт и активность']},
+  {id:'o2',q:'Что важнее в ссоре?',opts:['Быстро помириться','Всё проговорить','Обнять','Дать время']},
+  {id:'o3',q:'Как тебе приятнее получать любовь?',opts:['Словами','Прикосновениями','Заботой и делами','Подарками']},
+  {id:'o4',q:'Утро вдвоём — это…',opts:['Поспать подольше','Завтрак вместе','Кофе в тишине','Сразу строить планы']},
+  {id:'o5',q:'Где лучше отдыхать?',opts:['Море','Горы','Город','Лес и природа']},
+  {id:'o6',q:'Что романтичнее?',opts:['Свечи и ужин','Звёзды и плед','Танец на кухне','Письмо от руки']},
+  {id:'o7',q:'Идеальный подарок для тебя?',opts:['Впечатление-сюрприз','Что-то рукотворное','Желанная вещь','Время вместе']},
+  {id:'o8',q:'Кто ты в паре чаще?',opts:['Планирую','Поддерживаю','Смешу','Забочусь']},
+  {id:'o9',q:'Вечер мечты — это…',opts:['Кино и пицца','Ресторан','Прогулка под луной','Игры и смех']},
+  {id:'o10',q:'Признак близости для тебя?',opts:['Молчать вместе','Делиться секретами','Смеяться до слёз','Просто быть рядом']}
+];
+let qTurn=null; // who answers on THIS device right now
+function curQ(){
+  if(!S.qCurrent||!QUESTIONS.find(x=>x.id===S.qCurrent)){S.qCurrent=QUESTIONS[0].id;save();}
+  return QUESTIONS.find(x=>x.id===S.qCurrent);
+}
+function answeredCount(){return Object.values(S.qAnswers||{}).filter(a=>a&&a.her&&a.him).length;}
+function renderQ(){
+  const body=$('#q-body');
+  if(!S.me){
+    body.innerHTML=`<div class="q-card glass"><div class="q-text">Сначала выбери, кто ты в паре 💞</div></div><button class="g-btn" id="q-pickme">Выбрать</button>`;
+    $('#q-pickme').onclick=()=>$('#prof-btn').click();return;
+  }
+  const Q=curQ(),qid=Q.id,a=S.qAnswers[qid]||{},other=S.me==='her'?'him':'her';
+  const head=`<div class="q-progress">Отвечено вопросов: ${answeredCount()} из ${QUESTIONS.length}</div>
+    <div class="q-card glass"><div class="q-num">Вопрос вам двоим</div><div class="q-text">${esc(Q.q)}</div></div>`;
+  // both answered -> reveal
+  if(a.her&&a.him){
+    const match=Q.opts&&a.her===a.him;
+    body.innerHTML=head+
+      `${match?`<div class="q-match">Совпало! 💞</div>`:''}
+       <div class="q-answer her"><div class="who">${FACE.her} ${NAME.her}</div><div class="ans">${esc(a.her)}</div></div>
+       <div class="q-answer him"><div class="who">${FACE.him} ${NAME.him}</div><div class="ans">${esc(a.him)}</div></div>
+       <button class="g-btn" id="q-next">Следующий вопрос →</button>`;
+    $('#q-next').onclick=nextQ;return;
+  }
+  // I answered, partner hasn't, and not yet in "answer here" mode
+  if(a[S.me]&&!a[other]&&qTurn!==other){
+    body.innerHTML=head+
+      `<div class="q-pass"><div class="pem">⏳</div>
+        <p>Ты ответил(а) ✓</p>
+        <p>Ждём, пока <b class="${other}">${NAME[other]}</b> ответит со своего телефона…</p></div>
+       <button class="g-btn" id="q-here">📱 Ответить за ${NAME[other]} здесь</button>
+       <button class="g-btn ghost" id="q-skip">Пропустить вопрос</button>`;
+    $('#q-here').onclick=()=>{qTurn=other;renderQ();};
+    $('#q-skip').onclick=nextQ;return;
+  }
+  // who answers now
+  if(qTurn==null)qTurn=!a[S.me]?S.me:(!a[other]?other:null);
+  const who=qTurn;
+  const banner=who!==S.me
+    ? `<div class="q-turn">📱 Передай телефон — отвечает <b class="${who}">${NAME[who]}</b></div>`
+    : `<div class="q-turn">Твой ответ, <b class="${who}">${NAME[who]}</b></div>`;
+  let form;
+  if(Q.opts)form=`<div class="q-opts">${Q.opts.map(o=>`<button class="q-opt" data-o="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  else form=`<textarea class="q-ta" id="q-ta" placeholder="Напиши свой ответ…"></textarea><button class="g-btn ${who==='her'?'warm':'cold'}" id="q-save">Ответить</button>`;
+  body.innerHTML=head+banner+`<div class="q-section ${who}"><div class="q-section-label">Ответ: ${NAME[who]}</div>${form}</div>`;
+  if(Q.opts)body.querySelectorAll('.q-opt').forEach(b=>b.onclick=()=>submitAns(qid,who,b.dataset.o));
+  else $('#q-save').onclick=()=>{const v=$('#q-ta').value.trim();if(!v)return;submitAns(qid,who,v);};
+}
+function submitAns(qid,who,val){
+  S.qAnswers[qid]=S.qAnswers[qid]||{};S.qAnswers[qid][who]=val;save();qTurn=null;renderQ();
+}
+function nextQ(){
+  const others=QUESTIONS.filter(x=>x.id!==S.qCurrent);
+  const unans=others.filter(x=>{const a=S.qAnswers[x.id]||{};return !(a.her&&a.him);});
+  const pool=unans.length?unans:others;
+  S.qCurrent=pool[Math.floor(Math.random()*pool.length)].id;qTurn=null;save();renderQ();
+}
+$('#q-launch').onclick=()=>{if(!S.me){showLobby();return;}qTurn=null;showScene('q-scene');renderQ();};
+$('#q-back').onclick=()=>showScene('hut-scene');
+
+/* ============ SYNC (Firebase, optional) ============ */
+const SYNC_KEY='nashmir_sync';
+const SYNC_KEYS=['startDate','song','musli','rps','cal','drawDay','thoughtDay','letters','dreams','chat','gameStats','qCurrent','qAnswers'];
+let clientId=localStorage.getItem('nashmir_cid');
+if(!clientId){clientId=uid();localStorage.setItem('nashmir_cid',clientId);}
+const SYNC={
+  cfg:null,room:'',enabled:false,ref:null,connected:false,_t:null,
+  init(){
+    try{const s=JSON.parse(localStorage.getItem(SYNC_KEY)||'null');if(s&&s.cfg&&s.room){this.cfg=s.cfg;this.room=s.room;this.connect();}}catch(e){}
+    this.dot();
+  },
+  dot(){const d=$('#sync-dot');if(!d)return;d.className='sync-dot '+(this.connected?'on':'off');},
+  loadSDK(cb){
+    if(window.firebase&&firebase.database){cb();return;}
+    const a=document.createElement('script');a.src='https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js';
+    a.onload=()=>{const b=document.createElement('script');b.src='https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js';b.onload=cb;b.onerror=()=>cb('err');document.head.appendChild(b);};
+    a.onerror=()=>cb('err');document.head.appendChild(a);
+  },
+  connect(){
+    this.loadSDK(err=>{
+      if(err){this.enabled=false;this.dot();return;}
+      try{
+        if(!firebase.apps.length)firebase.initializeApp(this.cfg);
+        const db=firebase.database();
+        this.ref=db.ref('rooms/'+this.room);
+        this.enabled=true;
+        db.ref('.info/connected').on('value',s=>{this.connected=!!s.val();this.dot();});
+        this.ref.on('value',snap=>{
+          const d=snap.val();
+          if(!d){this.push();return;}            // empty room -> seed with local
+          if(d._origin===clientId)return;        // ignore our own write
+          this.applyRemote(d);
+        });
+      }catch(e){this.enabled=false;this.dot();alert('Не удалось подключиться к Firebase. Проверьте конфиг.');}
+    });
+  },
+  snapshot(){const o={};SYNC_KEYS.forEach(k=>o[k]=S[k]);o._origin=clientId;o._rev=Date.now();return o;},
+  schedulePush(){if(!this.enabled)return;clearTimeout(this._t);this._t=setTimeout(()=>this.push(),500);},
+  push(){if(!this.enabled||!this.ref)return;try{this.ref.set(this.snapshot());}catch(e){}},
+  applyRemote(d){
+    // chat: union by ts to avoid losing messages
+    if(Array.isArray(d.chat)){
+      const seen=new Set((S.chat||[]).map(m=>m.ts+'|'+m.sender));
+      const merged=(S.chat||[]).slice();
+      d.chat.forEach(m=>{const k=m.ts+'|'+m.sender;if(!seen.has(k)){seen.add(k);merged.push(m);}});
+      merged.sort((a,b)=>a.ts-b.ts);S.chat=merged;
+    }
+    SYNC_KEYS.forEach(k=>{if(k!=='chat'&&d[k]!==undefined)S[k]=d[k];});
+    try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
+    refreshAll();
+  },
+  disconnect(){try{if(this.ref)this.ref.off();if(window.firebase&&firebase.apps.length)firebase.database().ref('.info/connected').off();}catch(e){}
+    this.enabled=false;this.connected=false;this.cfg=null;this.room='';localStorage.removeItem(SYNC_KEY);this.dot();}
+};
+window.SYNC=SYNC;
+function refreshAll(){
+  renderHut();renderRPS();renderDreams();renderStats();
+  if($('#moments-scene').classList.contains('active'))renderMoments();
+  if($('#chat-scene').classList.contains('active'))renderChat();
+  if($('#cal-scene').classList.contains('active'))renderCal();
+  if($('#q-scene').classList.contains('active'))renderQ();
+  $$('.chat-send-toggle button').forEach(b=>b.classList.toggle('on',b.dataset.s===S.chatSender));
+}
+function genRoom(){let s='';for(let i=0;i<6;i++)s+='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)];return s;}
+$('#sync-btn').onclick=openSyncSheet;
+function openSyncSheet(){
+  if(SYNC.enabled){
+    openSheet(`<div class="sheet-title">Синхронизация включена</div>
+      <div style="text-align:center;color:var(--dim);font-size:14px;margin-bottom:6px">Ваш код пары:</div>
+      <div class="room-code">${SYNC.room}</div>
+      <div style="text-align:center;font-size:13px;color:${SYNC.connected?'#5fd17a':'var(--dim)'}">${SYNC.connected?'● На связи':'○ Подключение...'}</div>
+      <p style="font-size:12.5px;color:var(--dim);line-height:1.5;margin-top:14px">На втором телефоне откройте приложение, вставьте тот же конфиг Firebase и этот же код пары — данные начнут синхронизироваться.</p>
+      <button class="btn ghost" id="sync-off">Отключить синхронизацию</button>`);
+    $('#sync-off').onclick=()=>{SYNC.disconnect();closeSheet();};
+    return;
+  }
+  const room=genRoom();
+  openSheet(`<div class="sheet-title">Соединить два телефона</div>
+    <div class="sync-step"><span class="n">1</span><span>Откройте <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a>, создайте бесплатный проект.</span></div>
+    <div class="sync-step"><span class="n">2</span><span>Build → <b>Realtime Database</b> → «Создать БД» → режим <b>Test mode</b>.</span></div>
+    <div class="sync-step"><span class="n">3</span><span>Project settings → ваше веб-приложение → скопируйте объект <b>firebaseConfig</b> и вставьте ниже.</span></div>
+    <div class="field-label">Конфиг Firebase</div>
+    <textarea class="sheet-in" id="sync-cfg" style="min-height:120px;font-size:12px;font-family:monospace" placeholder='{ "apiKey": "...", "authDomain": "...", "databaseURL": "https://...firebaseio.com", "projectId": "...", "appId": "..." }'></textarea>
+    <div class="field-label">Код пары (одинаковый на двух телефонах)</div>
+    <input type="text" class="sheet-in" id="sync-room" value="${room}" style="letter-spacing:4px;text-transform:uppercase">
+    <button class="btn" id="sync-go">Подключить</button>
+    <p style="font-size:11.5px;color:var(--dim2);line-height:1.5;margin-top:10px">Данные (чат, моменты, календарь, мечты, статистика игр) будут жить в вашем личном Firebase. Игры пока работают в режиме «передай телефон».</p>`);
+  $('#sync-go').onclick=()=>{
+    let cfg;
+    try{const raw=$('#sync-cfg').value.trim();const m=raw.slice(raw.indexOf('{'),raw.lastIndexOf('}')+1);cfg=(new Function('return ('+m+')'))();}
+    catch(e){alert('Не удалось прочитать конфиг. Скопируйте объект firebaseConfig целиком.');return;}
+    if(!cfg||!cfg.databaseURL){alert('В конфиге нет databaseURL. Убедитесь, что Realtime Database создана.');return;}
+    const rm=$('#sync-room').value.trim().toUpperCase();
+    if(rm.length<4){alert('Код пары слишком короткий');return;}
+    SYNC.cfg=cfg;SYNC.room=rm;
+    localStorage.setItem(SYNC_KEY,JSON.stringify({cfg,room:rm}));
+    SYNC.connect();closeSheet();
+    setTimeout(()=>{if(SYNC.enabled)alert('Подключаемся! На втором телефоне введите тот же конфиг и код '+rm);},400);
+  };
+}
+
+/* ============ INIT ============ */
+renderHut();renderRPS();renderDreams();
+applyIdentity();
+if(!S.me)showLobby();
+SYNC.init();
+window.addEventListener('load',setupCanvas);
+window.addEventListener('resize',()=>{if($('#thoughts-scene').classList.contains('active'))setupCanvas();});
+// setup canvas once images/layout ready
+setupCanvas();
+</script>
+</body>
+</html>
